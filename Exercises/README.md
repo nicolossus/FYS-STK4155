@@ -1,6 +1,6 @@
 # Exercises
 
-This repository contains exercises
+This repository contains exercises and other trinkets
 
 ### Contents :shipit:
 
