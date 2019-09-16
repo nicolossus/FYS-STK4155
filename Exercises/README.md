@@ -2,6 +2,8 @@
 
 This repository contains exercises and other trinkets
 
+blalba
+
 ### Contents :shipit:
 
 - item1
