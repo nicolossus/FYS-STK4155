@@ -1,7 +1,7 @@
 # Exercises
 
 
-This repository contaskdfjdsfins exercises and other trinkets
+This repository contains exercises
 
 
 ### Contents :shipit:
