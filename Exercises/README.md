@@ -1,6 +1,8 @@
 # Exercises
 
-This repository contains exercises and other trinkets
+
+This repository contaskdfjdsfins exercises and other trinkets
+
 
 blalba
 
