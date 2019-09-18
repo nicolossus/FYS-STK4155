@@ -1,23 +1,23 @@
-from func import *
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
+from matplotlib import cm
+from matplotlib.ticker import FormatStrFormatter, LinearLocator
+from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
 
+from func import *
 
-#generate data
+# generate data
 np.random.seed(1)
 rd.seed(1)
-N = int(1e5)               #Number of data points
-sigma2 = 1               #Irreducable error
-x = np.random.uniform(0, 1, (N,2))
-z = frankeFunction(x[:,0], x[:,1]) + np.random.normal(0, sigma2, N)
+N = int(1e5)  # Number of data points
+sigma2 = 1  # Irreducable error
+x = np.random.uniform(0, 1, (N, 2))
+z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
 
 poly_deg = 10
-P = int(((poly_deg+2)*(poly_deg+1))/2)
+P = int(((poly_deg + 2) * (poly_deg + 1)) / 2)
 
 X = designMatrix(x, poly_deg)
 
@@ -26,13 +26,14 @@ b = np.linalg.inv(X.T @ X) @ X.T @ z
 mse_1 = mse(z, X @ b)
 r2_1 = r2(z, X @ b)
 
-b_var = np.linalg.inv(X.T @ X) * N/(N-P) * mse_1
+b_var = np.linalg.inv(X.T @ X) * N / (N - P) * mse_1
 
-t = stats.t(df = N-P).ppf(0.95)
+t = stats.t(df=N - P).ppf(0.95)
 
-cinterval =  [[b[i] - b_var[i][i]*t, b[i] + b_var[i][i]*t] for i in range(P)]
+cinterval = [[b[i] - b_var[i][i] * t, b[i] + b_var[i][i] * t]
+             for i in range(P)]
 
-train_idx, test_idx = split_data(N, p = 0.25)
+train_idx, test_idx = split_data(N, p=0.25)
 X_train = designMatrix(x[train_idx], poly_deg)
 X_test = designMatrix(x[test_idx], poly_deg)
 
@@ -66,8 +67,8 @@ for i in range(p):
     mse_train[i] /= k
     mse_test[i] /= k
 
-plt.plot(list(range(p)),mse_train)
-plt.plot(list(range(p)),mse_test)
+plt.plot(list(range(p)), mse_train)
+plt.plot(list(range(p)), mse_test)
 plt.show()
 
 """
