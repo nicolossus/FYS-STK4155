@@ -6,6 +6,11 @@ from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 
+a = 2
+b = 3
+
+c = a + b
+
 
 def frankeFunction(x, y):
     term1 = 0.75 * np.exp(-(0.25 * (9 * x - 2)**2) - 0.25 * ((9 * y - 2)**2))
