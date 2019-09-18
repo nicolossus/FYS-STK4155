@@ -7,10 +7,13 @@ hahahahahmohamoha
 
 blalba
 
+<<<<<<< HEAD
 LooOOooL!
 
 Test.
 
+=======
+>>>>>>> parent of f8b43c2... Test
 ### Contents :shipit:
 
 - item1
