@@ -6,6 +6,8 @@ This repository contains exercises
 
 blalba
 
+LooOOooL!
+
 ### Contents :shipit:
 
 - item1
