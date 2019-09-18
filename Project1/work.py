@@ -13,8 +13,6 @@ fig = plt.figure()
 ax = fig.gca(projection="3d")
 # Make data.
 
-# changes
-
 x = np.arange(0, 1, 0.05)
 y = np.arange(0, 1, 0.05)
 x, y = np.meshgrid(x, y)
