@@ -5,6 +5,7 @@ import numpy as np
 import random as rd
 from scipy import stats
 from math import ceil
+from sklearn.linear_model import Lasso
 
 def frankeFunction(x, y):
     term1 = 0.75 * np.exp(-(0.25 * (9 * x - 2)**2) - 0.25 * ((9 * y - 2)**2))
@@ -96,6 +97,20 @@ class Ridge(LinearModel):
         X, P = self.design_matrix(x, self.poly_deg, intercept = False)
         X_norm = (X - self.X_mean[np.newaxis, :])/self.X_std[np.newaxis, :]
         pred = X_norm @ self.b[1:] + self.b[0]
+        return pred
+
+class MyLasso(LinearModel):
+    def fit(self, x, y, poly_deg, lamb):
+        self.N = x.shape[0]
+        self.poly_deg = poly_deg
+        X, self.params = self.design_matrix(x, poly_deg)
+
+        self.lasso = Lasso(alpha = lamb, fit_intercept = True, normalize = True)
+        self.lasso.fit(X,y)
+
+    def predict(self, x):
+        X, P = self.design_matrix(x, self.poly_deg)
+        pred = self.lasso.predict(X)
         return pred
 
 
