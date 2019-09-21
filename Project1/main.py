@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
@@ -8,23 +11,23 @@ from scipy import stats
 from func import *
 
 # generate data
-np.random.seed(1)
-rd.seed(1)
-N = int(1e3)             #Number of data points
-sigma2 = 1               #Irreducable error
-x = np.random.uniform(0, 1, (N,2))
-z = frankeFunction(x[:,0], x[:,1]) + np.random.normal(0, sigma2, N)
+np.random.seed(42)
+rd.seed(42)
+N = int(1e3)  # Number of data points
+sigma2 = 1  # Irreducable error
+x = np.random.uniform(0, 1, (N, 2))
+z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
 
 k = 5
-folds = kfold(N,5)
+folds = kfold(N, 5)
 
 max_poly_deg = 12
 mse_train = np.zeros(max_poly_deg)
 mse_test = np.zeros(max_poly_deg)
 
 model = LinearModel()
-model.ridge(x, z, 5, 0)
+model.Ridge(x, z, 5, 0)
 #model.ols(x, z, 5)
 """
 for i in range(max_poly_deg):

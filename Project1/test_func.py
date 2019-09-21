@@ -1,7 +1,12 @@
-import pytest
-from func import *
-import numpy as np
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import random as rd
+
+import numpy as np
+import pytest
+
+from func import *
 
 
 def test_design_matrix():
