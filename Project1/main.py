@@ -11,8 +11,8 @@ from scipy import stats
 from func import *
 
 # generate data
-np.random.seed(1)
-rd.seed(1)
+np.random.seed(42)
+rd.seed(42)
 N = int(1e3)  # Number of data points
 sigma2 = 1  # Irreducable error
 x = np.random.uniform(0, 1, (N, 2))
