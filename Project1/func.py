@@ -83,7 +83,7 @@ class Ridge(LinearModel):
         self.eff_params = np.trace(X_norm @ self.inv_cov_matrix @ X_norm.T) + 1
         self.b = np.zeros(self.params)
         self.b[0] = np.mean(y)
-        self.b[1:] = self.inv_cov_matrix @ X_norm.T @ (y - self.b[0])
+        self.b[1:] = self.inv_cov_matrix @ X_norm.T @ y
 
         self.b_var = np.zeros(self.params)
         self.b_var[0] = 1 / self.N
@@ -97,24 +97,31 @@ class Ridge(LinearModel):
         return pred
 
 
-def split_data(n, p=0.25):
-    test_n = int(p * n)
-    idx = list(range(n))
-    rd.shuffle(idx)
-    test_idx = [idx.pop() for i in range(test_n)]
-    train_idx = idx
-    return test_idx, train_idx
+def split_data(n, ratio=0.25):
+    test_set_size = int(ratio * n)
+    indicies = list(range(n))
+    rd.shuffle(indicies)
+    test_idx = indicies[:test_set_size]
+    train_idx = indicies[test_set_size:]
+    return train_idx, test_idx
 
 
 def kfold(n, k=5):
-    idx = np.array(list(range(n)))
-    np.random.shuffle(idx)
-    idx = np.array_split(idx, k)
+    indicies = list(range(n))
+    rd.shuffle(indicies)
+    N = ceil(n / k)
+    indicies_split = []
+    for i in range(k):
+        a = i * N
+        b = (i + 1) * N
+        if b > n:
+            b = n
+        indicies_split.append(indicies[a:b])
 
     def folds(i):
-        test_idx = idx[i]
-        train_idx = np.concatenate((idx[:i], idx[i + 1:]), axis=None)
-        train_idx = train_idx.astype("int16")
+        test_idx = indicies_split[i]
+        train_idx = indicies_split[:i] + indicies_split[i + 1:]
+        train_idx = [item for sublist in train_idx for item in sublist]
         return train_idx, test_idx
 
     return folds
