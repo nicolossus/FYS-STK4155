@@ -1,16 +1,16 @@
-from mpl_toolkits.mplot3d import Axes3D
+import random as rd
+
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
 import random as rd
 from scipy import stats
+from math import ceil
 
-def frankeFunction(x,y):
-    term1 = 0.75*np.exp(-(0.25*(9*x-2)**2) - 0.25*((9*y-2)**2))
-    term2 = 0.75*np.exp(-((9*x+1)**2)/49.0 - 0.1*(9*y+1))
-    term3 = 0.5*np.exp(-(9*x-7)**2/4.0 - 0.25*((9*y-3)**2))
-    term4 = -0.2*np.exp(-(9*x-4)**2 - (9*y-7)**2)
+def frankeFunction(x, y):
+    term1 = 0.75 * np.exp(-(0.25 * (9 * x - 2)**2) - 0.25 * ((9 * y - 2)**2))
+    term2 = 0.75 * np.exp(-((9 * x + 1)**2) / 49.0 - 0.1 * (9 * y + 1))
+    term3 = 0.5 * np.exp(-(9 * x - 7)**2 / 4.0 - 0.25 * ((9 * y - 3)**2))
+    term4 = -0.2 * np.exp(-(9 * x - 4)**2 - (9 * y - 7)**2)
     return term1 + term2 + term3 + term4
 
 
@@ -85,7 +85,7 @@ class Ridge(LinearModel):
         self.eff_params = np.trace(X_norm @ self.inv_cov_matrix @ X_norm.T) + 1
         self.b = np.zeros(self.params)
         self.b[0] = np.mean(y)
-        self.b[1:] = self.inv_cov_matrix @ X_norm.T @ (y - self.b[0])
+        self.b[1:] = self.inv_cov_matrix @ X_norm.T @ y
 
         self.b_var = np.zeros(self.params)
         self.b_var[0] = 1/self.N
@@ -99,25 +99,31 @@ class Ridge(LinearModel):
         return pred
 
 
+def split_data(n, ratio=0.25):
+    test_set_size = int(ratio * n)
+    indicies = list(range(n))
+    rd.shuffle(indicies)
+    test_idx = indicies[:test_set_size]
+    train_idx = indicies[test_set_size:]
+    return train_idx, test_idx
 
-def split_data(n, p = 0.25):
-    test_n = int(p*n)
-    idx = list(range(n))
-    rd.shuffle(idx)
-    test_idx = [idx.pop() for i in range(test_n)]
-    train_idx = idx
-    return test_idx, train_idx
 
-
-def kfold(n, k = 5):
-    idx = np.array(list(range(n)))
-    np.random.shuffle(idx)
-    idx = np.array_split(idx, k)
+def kfold(n, k=5):
+    indicies = list(range(n))
+    rd.shuffle(indicies)
+    N = ceil(n/k)
+    indicies_split = []
+    for i in range(k):
+        a = i*N
+        b = (i+1)*N
+        if b > n:
+            b = n
+        indicies_split.append(indicies[a:b])
 
     def folds(i):
-        test_idx = idx[i]
-        train_idx = np.concatenate((idx[:i], idx[i+1:]), axis = None)
-        train_idx = train_idx.astype("int16")
+        test_idx = indicies_split[i]
+        train_idx = indicies_split[:i] + indicies_split[i + 1:]
+        train_idx = [item for sublist in train_idx for item in sublist]
         return train_idx, test_idx
 
     return folds
@@ -125,23 +131,22 @@ def kfold(n, k = 5):
 
 if __name__ == "__main__":
 
-
     fig = plt.figure()
     ax = fig.gca(projection="3d")
 
     # Make data.
     x = np.arange(0, 1, 0.05)
     y = np.arange(0, 1, 0.05)
-    x, y = np.meshgrid(x,y)
+    x, y = np.meshgrid(x, y)
 
     print(x)
-
 
     z = frankeFunction(x, y)
 
     # Plot the surface.
 
-    surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,linewidth=0, antialiased=False)
+    surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                           linewidth=0, antialiased=False)
     # Customize the z axis.
     ax.set_zlim(-0.10, 1.40)
     ax.zaxis.set_major_locator(LinearLocator(10))

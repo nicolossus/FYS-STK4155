@@ -1,13 +1,13 @@
-from func import *
-from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
-from matplotlib import cm
-from matplotlib.ticker import LinearLocator, FormatStrFormatter
 import numpy as np
+from matplotlib import cm
+from matplotlib.ticker import FormatStrFormatter, LinearLocator
+from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
 
+from func import *
 
-#generate data
+# generate data
 np.random.seed(1)
 rd.seed(1)
 N = int(1e3)             #Number of data points
@@ -51,13 +51,14 @@ b = np.linalg.inv(X.T @ X) @ X.T @ z
 mse_1 = mse(z, X @ b)
 r2_1 = r2(z, X @ b)
 
-b_var = np.linalg.inv(X.T @ X) * N/(N-P) * mse_1
+b_var = np.linalg.inv(X.T @ X) * N / (N - P) * mse_1
 
-t = stats.t(df = N-P).ppf(0.95)
+t = stats.t(df=N - P).ppf(0.95)
 
-cinterval =  [[b[i] - b_var[i][i]*t, b[i] + b_var[i][i]*t] for i in range(P)]
+cinterval = [[b[i] - b_var[i][i] * t, b[i] + b_var[i][i] * t]
+             for i in range(P)]
 
-train_idx, test_idx = split_data(N, p = 0.25)
+train_idx, test_idx = split_data(N, p=0.25)
 X_train = designMatrix(x[train_idx], poly_deg)
 X_test = designMatrix(x[test_idx], poly_deg)
 
