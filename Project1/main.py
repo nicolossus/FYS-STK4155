@@ -10,15 +10,40 @@ from scipy import stats
 #generate data
 np.random.seed(1)
 rd.seed(1)
-N = int(1e5)               #Number of data points
+N = int(1e3)             #Number of data points
 sigma2 = 1               #Irreducable error
 x = np.random.uniform(0, 1, (N,2))
 z = frankeFunction(x[:,0], x[:,1]) + np.random.normal(0, sigma2, N)
 
 
-poly_deg = 10
-P = int(((poly_deg+2)*(poly_deg+1))/2)
+k = 5
+folds = kfold(N,5)
 
+max_poly_deg = 12
+mse_train = np.zeros(max_poly_deg)
+mse_test = np.zeros(max_poly_deg)
+
+model = LinearModel()
+model.ridge(x, z, 5, 0)
+#model.ols(x, z, 5)
+"""
+for i in range(max_poly_deg):
+    for j in range(k):
+        train_idx, test_idx = folds(j)
+
+        model.ridge(x[train_idx],z[train_idx], i, 0.1)
+        mse_train[i] += model.mse(x[train_idx], z[train_idx])
+        mse_test[i] += model.mse(x[test_idx], z[test_idx])
+
+    mse_train[i] /= k
+    mse_test[i] /= k
+
+plt.plot(list(range(max_poly_deg)), mse_train)
+plt.plot(list(range(max_poly_deg)), mse_test)
+plt.show()
+"""
+
+"""
 X = designMatrix(x, poly_deg)
 
 b = np.linalg.inv(X.T @ X) @ X.T @ z
@@ -50,26 +75,8 @@ print(f"test mse is {mse_test}")
 k = 5
 folds = kfold(N, k)
 
-p = 12
-mse_train = np.zeros(p)
-mse_test = np.zeros(p)
-for i in range(p):
-    for j in range(k):
-        train_idx, test_idx = folds(j)
-        X_train = designMatrix(x[train_idx], i)
-        X_test = designMatrix(x[test_idx], i)
-
-        b_train = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ z[train_idx]
-        mse_train[i] += mse(z[train_idx], X_train @ b_train)
-        mse_test[i] += mse(z[test_idx], X_test @ b_train)
-
-    mse_train[i] /= k
-    mse_test[i] /= k
-
-plt.plot(list(range(p)),mse_train)
-plt.plot(list(range(p)),mse_test)
 plt.show()
-
+"""
 """
 M = 40
 x_lin = np.linspace(0, 1, M)
@@ -80,18 +87,15 @@ x_lin, y_lin = np.ravel(x_grid), np.ravel(y_grid)
 
 x = np.array([[i,j] for i,j in zip(x_lin,y_lin)])
 
-X_lin = designMatrix(x, 5)
-z_lin = X_lin @ b
-
-print(len(z_lin))
+z_lin = model.predict(x)
 
 z_grid = np.reshape(z_lin,(M,M))
-
+print(z_grid[20,20])
 
 fig = plt.figure()
 ax = fig.gca(projection="3d")
-ax.scatter(x, y, z, color = "k", linewidths = 0.1, edgecolors = None)
-surf = ax.plot_surface(x_grid, y_grid, z_grid, cmap=cm.coolwarm,linewidth=0, antialiased=False, alpha=0.5)
+#ax.scatter(x, y, z, color = "k", linewidths = 0.1, edgecolors = None)
+surf = ax.plot_surface(x_grid, y_grid, z_grid, cmap=cm.coolwarm,linewidth=0, antialiased=False)
 # Customize the z axis.
 ax.set_zlim(-0.10, 1.40)
 ax.zaxis.set_major_locator(LinearLocator(10))
