@@ -36,10 +36,11 @@ class LinearModel:
 
         return X, params
 
-    def confidence_interval(p):
-        t = stats.t(df=N - self.eff_params).ppf(p)
-        self.cinterval = [[self.b[i] - self.b_var[i] * t, b[i] + b_var[i] * t] for
-                          i in range(P)]
+    def confidence_interval(self, p):
+        t = stats.t(df=self.N - self.eff_params).ppf(2 * p - 1)
+        conf_intervals = [[self.b[i] - self.b_var[i] * t, self.b[i] + self.b_var[i] * t] for
+                          i in range(self.params)]
+        return conf_intervals
 
     def mse(self, x, y):
         n = y.size

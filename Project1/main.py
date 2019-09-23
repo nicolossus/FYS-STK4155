@@ -7,18 +7,28 @@ from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
-
 from func import *
 
-# generate data
 np.random.seed(42)
 rd.seed(42)
-N = int(1e3)  # Number of data points
-sigma2 = 1  # Irreducable error
-x = np.random.uniform(0, 1, (N, 2))
-z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+N = [100, 100, 10000, 10000]  # Number of data points
+sigma2 = [0.01, 1, 0.01, 1]   # Irreducable error
+mse = []
+r2 = []
+conf_intervals = []
+model_ols = OLS()
+poly_deg = 5
+p = 0.9
+for i in range(len(N)):
+    x = np.random.uniform(0, 1, (N[i], 2))
+    z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2[i], N[i])
+    model_ols.fit(x, z, poly_deg)
+    mse.append(model_ols.mse(x, z))
+    r2.append(model_ols.r2(x, z))
+    conf_intervals.append(model_ols.confidence_interval(p))
 
 
+"""
 k = 5
 folds = kfold(N, 5)
 
@@ -29,6 +39,8 @@ mse_test = np.zeros(max_poly_deg)
 model = LinearModel()
 model.Ridge(x, z, 5, 0)
 #model.ols(x, z, 5)
+"""
+
 """
 for i in range(max_poly_deg):
     for j in range(k):
