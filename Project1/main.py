@@ -9,8 +9,13 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
 from func import *
 
+# Set seeds
 np.random.seed(42)
 rd.seed(42)
+
+
+# OLS on varying amounts of data and noise. Calculate training MSE, R2 and CI
+# ----------------------------------------------------------------------------
 N = [100, 100, 10000, 10000]  # Number of data points
 sigma2 = [0.01, 1, 0.01, 1]   # Irreducable error
 mse = []
@@ -21,104 +26,183 @@ poly_deg = 5
 p = 0.9
 for i in range(len(N)):
     x = np.random.uniform(0, 1, (N[i], 2))
-    z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2[i], N[i])
+    z = frankeFunction(x[:, 0], x[:, 1]) + \
+        np.random.normal(0, sigma2[i], N[i])
     model_ols.fit(x, z, poly_deg)
     mse.append(model_ols.mse(x, z))
     r2.append(model_ols.r2(x, z))
     conf_intervals.append(model_ols.confidence_interval(p))
+# ----------------------------------------------------------------------------
 
 
-"""
+# Perform data split and calculate training/testing mse
+# ----------------------------------------------------------------------------
+N = 1000
+sigma2 = 1
+ratio = 0.25
+model_ols = OLS()
+poly_deg = 6
+
+x = np.random.uniform(0, 1, (N, 2))
+z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+
+train_idx, test_idx = split_data(list(range(N)), ratio=ratio)
+model_ols.fit(x[train_idx], z[train_idx], poly_deg)
+mse_train = model_ols.mse(x[train_idx], z[train_idx])
+mse_test = model_ols.mse(x[test_idx], z[test_idx])
+print(mse_train, mse_test)
+# ----------------------------------------------------------------------------
+
+
+# Calculate train/test MSE for varying complexity using CV on OLS
+# ----------------------------------------------------------------------------
+N = 1000
+sigma2 = 1
+model_ols = OLS()
+poly_deg_max = 9
+mse_train = np.zeros(poly_deg_max,)
+mse_test = np.zeros(poly_deg_max)
 k = 5
-folds = kfold(N, 5)
 
-max_poly_deg = 12
-mse_train = np.zeros(max_poly_deg)
-mse_test = np.zeros(max_poly_deg)
+x = np.random.uniform(0, 1, (N, 2))
+z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
-model = LinearModel()
-model.Ridge(x, z, 5, 0)
-#model.ols(x, z, 5)
-"""
+for i in range(poly_deg_max):
+    folds = kfold(list(range(N)), k=5)
 
-"""
-for i in range(max_poly_deg):
     for j in range(k):
         train_idx, test_idx = folds(j)
-
-        model.ridge(x[train_idx],z[train_idx], i, 0.1)
-        mse_train[i] += model.mse(x[train_idx], z[train_idx])
-        mse_test[i] += model.mse(x[test_idx], z[test_idx])
+        model_ols.fit(x[train_idx], z[train_idx], i)
+        mse_train[i] += model_ols.mse(x[train_idx], z[train_idx])
+        mse_test[i] += model_ols.mse(x[test_idx], z[test_idx])
 
     mse_train[i] /= k
     mse_test[i] /= k
 
-plt.plot(list(range(max_poly_deg)), mse_train)
-plt.plot(list(range(max_poly_deg)), mse_test)
+plt.plot(np.arange(poly_deg_max), mse_train)
+plt.plot(np.arange(poly_deg_max), mse_test)
+plt.legend(["Training MSE", "Test MSE"])
 plt.show()
-"""
 
-"""
-X = designMatrix(x, poly_deg)
+N = 10000
+x = np.random.uniform(0, 1, (N, 2))
+z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
-b = np.linalg.inv(X.T @ X) @ X.T @ z
+for i in range(poly_deg_max):
+    folds = kfold(list(range(N)), k=5)
 
-mse_1 = mse(z, X @ b)
-r2_1 = r2(z, X @ b)
+    for j in range(k):
+        train_idx, test_idx = folds(j)
+        model_ols.fit(x[train_idx], z[train_idx], i)
+        mse_train[i] += model_ols.mse(x[train_idx], z[train_idx])
+        mse_test[i] += model_ols.mse(x[test_idx], z[test_idx])
 
-b_var = np.linalg.inv(X.T @ X) * N / (N - P) * mse_1
+    mse_train[i] /= k
+    mse_test[i] /= k
 
-t = stats.t(df=N - P).ppf(0.95)
+plt.plot(np.arange(poly_deg_max), mse_train)
+plt.plot(np.arange(poly_deg_max), mse_test)
+plt.legend(["Training MSE", "Test MSE"])
+plt.show()
+# ----------------------------------------------------------------------------
 
-cinterval = [[b[i] - b_var[i][i] * t, b[i] + b_var[i][i] * t]
-             for i in range(P)]
 
-train_idx, test_idx = split_data(N, p=0.25)
-X_train = designMatrix(x[train_idx], poly_deg)
-X_test = designMatrix(x[test_idx], poly_deg)
+# Ridge
+# ----------------------------------------------------------------------------
+N = 1000
+sigma2 = 1
+x = np.random.uniform(0, 1, (N, 2))
+z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
-b_train = np.linalg.inv(X_train.T @ X_train) @ X_train.T @ z[train_idx]
-
-mse_train = mse(z[train_idx], X_train @ b_train)
-r2_train = r2(z[train_idx], X_train @ b_train)
-
-mse_test = mse(z[test_idx], X_test @ b_train)
-r2_test = r2(z[test_idx], X_test @ b_train)
-
-print(f"train mse is {mse_train}")
-print(f"test mse is {mse_test}")
-
+model_ridge = Ridge()
+poly_deg_max = 9
+poly_deg = np.arange(1, poly_deg_max + 1)
+lamb = [1e-2, 1e-1, 1e0, 1e1]
+mse_train = np.zeros((len(lamb), len(poly_deg)))
+mse_test = np.zeros((len(lamb), len(poly_deg)))
 k = 5
-folds = kfold(N, k)
 
+for l in range(len(lamb)):
+    for i in range(len(poly_deg)):
+        folds = kfold(list(range(N)), k=5)
+
+        for j in range(k):
+            train_idx, test_idx = folds(j)
+            model_ridge.fit(x[train_idx], z[train_idx],
+                            poly_deg[i], lamb[l])
+            mse_train[l, i] += model_ridge.mse(x[train_idx], z[train_idx])
+            mse_test[l, i] += model_ridge.mse(x[test_idx], z[test_idx])
+
+        mse_train[l, i] /= k
+        mse_test[l, i] /= k
+
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[0])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[0])
+plt.legend(["Training MSE", "Test MSE"])
 plt.show()
-"""
-"""
-M = 40
-x_lin = np.linspace(0, 1, M)
-y_lin = np.linspace(0, 1, M)
 
-x_grid, y_grid = np.meshgrid(x_lin, y_lin)
-x_lin, y_lin = np.ravel(x_grid), np.ravel(y_grid)
-
-x = np.array([[i,j] for i,j in zip(x_lin,y_lin)])
-
-z_lin = model.predict(x)
-
-z_grid = np.reshape(z_lin,(M,M))
-print(z_grid[20,20])
-
-fig = plt.figure()
-ax = fig.gca(projection="3d")
-#ax.scatter(x, y, z, color = "k", linewidths = 0.1, edgecolors = None)
-surf = ax.plot_surface(x_grid, y_grid, z_grid, cmap=cm.coolwarm,linewidth=0, antialiased=False)
-# Customize the z axis.
-ax.set_zlim(-0.10, 1.40)
-ax.zaxis.set_major_locator(LinearLocator(10))
-ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
-# Add a color bar which maps values to colors.
-
-fig.colorbar(surf, shrink=0.5, aspect=5)
-
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[1])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[1])
+plt.legend(["Training MSE", "Test MSE"])
 plt.show()
-"""
+
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[2])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[2])
+plt.legend(["Training MSE", "Test MSE"])
+plt.show()
+
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[3])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
+plt.legend(["Training MSE", "Test MSE"])
+plt.show()
+# ----------------------------------------------------------------------------
+
+
+# Lasso
+# ----------------------------------------------------------------------------
+N = 1000
+sigma2 = 1
+x = np.random.uniform(0, 1, (N, 2))
+z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+
+model_lasso = MyLasso()
+poly_deg_max = 9
+poly_deg = np.arange(1, poly_deg_max + 1)
+lamb = [1e-2, 1e-1, 1e0, 1e1]
+mse_train = np.zeros((len(lamb), len(poly_deg)))
+mse_test = np.zeros((len(lamb), len(poly_deg)))
+k = 5
+
+for l in range(len(lamb)):
+    for i in range(len(poly_deg)):
+        folds = kfold(list(range(N)), k=5)
+
+        for j in range(k):
+            train_idx, test_idx = folds(j)
+            model_lasso.fit(x[train_idx], z[train_idx], poly_deg[i], lamb[l])
+            mse_train[l, i] += model_lasso.mse(x[train_idx], z[train_idx])
+            mse_test[l, i] += model_lasso.mse(x[test_idx], z[test_idx])
+
+        mse_train[l, i] /= k
+        mse_test[l, i] /= k
+
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[0])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[0])
+plt.legend(["Training MSE", "Test MSE"])
+plt.show()
+
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[1])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[1])
+plt.legend(["Training MSE", "Test MSE"])
+plt.show()
+
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[2])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[2])
+plt.legend(["Training MSE", "Test MSE"])
+plt.show()
+
+plt.plot(np.arange(1, poly_deg_max + 1), mse_train[3])
+plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
+plt.legend(["Training MSE", "Test MSE"])
+plt.show()
+# ----------------------------------------------------------------------------

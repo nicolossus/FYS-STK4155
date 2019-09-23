@@ -110,7 +110,7 @@ def test_split_data():
     rd.seed(1)
     N = 1000
 
-    train_idx, test_idx = split_data(N)
+    train_idx, test_idx = split_data(list(range(N)))
     assert abs(len(test_idx) / (len(train_idx) + len(test_idx)) - 0.25) < 0.01
 
     all_idx = train_idx + test_idx
@@ -121,7 +121,7 @@ def test_split_data():
 def test_kfold():
     N = 1000
     k = 5
-    folds = kfold(N, k)
+    folds = kfold(list(range(N)), k)
 
     all_test_idx = []
 

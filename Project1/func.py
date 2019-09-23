@@ -119,17 +119,17 @@ class MyLasso(LinearModel):
         return pred
 
 
-def split_data(n, ratio=0.25):
+def split_data(indicies, ratio=0.25):
+    n = len(indicies)
     test_set_size = int(ratio * n)
-    indicies = list(range(n))
     rd.shuffle(indicies)
     test_idx = indicies[:test_set_size]
     train_idx = indicies[test_set_size:]
     return train_idx, test_idx
 
 
-def kfold(n, k=5):
-    indicies = list(range(n))
+def kfold(indicies, k=5):
+    n = len(indicies)
     rd.shuffle(indicies)
     N = ceil(n / k)
     indicies_split = []
