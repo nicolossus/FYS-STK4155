@@ -82,20 +82,20 @@ class Ridge(LinearModel):
         self.X_std = np.std(X, axis=0)
 
         X_norm = (X - self.X_mean[np.newaxis, :]) / self.X_std[np.newaxis, :]
-        self.inv_cov_matrix = np.linalg.inv(X_norm.T @ X_norm +
-                                            lamb * np.identity(self.params))
+        self.inv_cov_matrix = np.linalg.pinv(X_norm.T @ X_norm +
+                                             lamb * np.identity(self.params))
 
         self.params += 1
-        self.eff_params = np.trace(X_norm @ self.inv_cov_matrix @ X_norm.T) + 1
+        #self.eff_params = np.trace(X_norm @ self.inv_cov_matrix @ X_norm.T) + 1
         self.b = np.zeros(self.params)
         self.b[0] = np.mean(y)
         self.b[1:] = self.inv_cov_matrix @ X_norm.T @ y
 
-        self.b_var = np.zeros(self.params)
-        self.b_var[0] = 1 / self.N
-        self.b_var[1:] = np.diag(self.inv_cov_matrix @
-                                 X.T @ X @ self.inv_cov_matrix)
-        self.b_var *= self.N / (self.N - self.eff_params) * self.mse(x, y)
+        #self.b_var = np.zeros(self.params)
+        #self.b_var[0] = 1 / self.N
+        # self.b_var[1:] = np.diag(self.inv_cov_matrix @
+        #                         X.T @ X @ self.inv_cov_matrix)
+        #self.b_var *= self.N / (self.N - self.eff_params) * self.mse(x, y)
 
     def predict(self, x):
         X, P = self.design_matrix(x, self.poly_deg, intercept=False)
@@ -147,6 +147,18 @@ def kfold(indicies, k=5):
         return train_idx, test_idx
 
     return folds
+
+
+def down_sample(terrain, N):
+    m, n = terrain.shape
+    m_new, n_new = int(m / N), int(n / N)
+    terrain_new = np.zeros((m_new, n_new))
+    for i in range(m_new):
+        for j in range(n_new):
+            slice = terrain[N * i:N * (i + 1), N * j:N * (j + 1)]
+            terrain_new[i, j] = 1 / (slice.size)**2 * np.sum(slice)
+
+    return terrain_new
 
 
 if __name__ == "__main__":
