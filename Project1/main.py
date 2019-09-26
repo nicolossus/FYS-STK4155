@@ -59,12 +59,6 @@ def tab_path(tab_id):
     return os.path.join(TABLE_PATH + "/", tab_id)
 
 
-# def OLS_():
-"""
-OLS on varying amounts of data and noise. Calculate training MSE, R2 and CI
-"""
-
-
 def OLS_stat():
     """
     Statistical summary with OLS on data of different size and varying noise.
@@ -112,12 +106,14 @@ def OLS_stat():
     pd.options.display.float_format = '{:,.3f}'.format
     df = df.apply(lambda x: x.astype(
         int) if np.allclose(x, x.astype(int)) else x)
+    pd.options.display.latex.escape = False
+    latex = df.to_latex(index=False, column_format='cccc')
+    latex = latex.replace('\\toprule', '\\hline \\hline')
+    latex = latex.replace('\\midrule', '\\hline \\hline')
+    latex = latex.replace('\\bottomrule', '\\hline \\hline')
 
     with open(tab_path('ols_stat.tex'), 'w') as f:
-        f.write(df.to_latex(index=False, escape=False, column_format='cccc'
-                            ).replace('\\toprule', '\\hline \\hline'
-                                      ).replace('\\midrule', '\\hline \\hline'
-                                                ).replace('\\bottomrule', '\\hline \\hline'))
+        f.write(latex)
 
 
 OLS_stat()
@@ -193,7 +189,8 @@ for n in range(len(N)):  # calculate for small and large dataset
     for r in range(repeat):
         plt.plot(np.arange(poly_deg_max),
                  mse_train[r], color="blue", alpha=0.1)
-        plt.plot(np.arange(poly_deg_max), mse_test[r], color="red", alpha=0.1)
+        plt.plot(np.arange(poly_deg_max),
+                 mse_test[r], color="red", alpha=0.1)
 
     plt.legend(["train MSE", "test MSE"])
     fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
