@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import random as rd
+
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
+
 from func import *
 
-# Set seeds
+# Set seed for debugging purposes
 np.random.seed(42)
 rd.seed(42)
 
