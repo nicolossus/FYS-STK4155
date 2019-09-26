@@ -36,6 +36,13 @@ class LinearModel:
 
         return X, params
 
+    def normalize_design_matrix(self, X):
+        self.X_mean = np.mean(X, axis=0)
+        self.X_std = np.std(X, axis=0)
+
+        X_norm = (X - self.X_mean[np.newaxis, :]) / self.X_std[np.newaxis, :]
+        return X_norm
+
     def confidence_interval(self, p):
         t = stats.t(df=self.N - self.eff_params).ppf(2 * p - 1)
         conf_intervals = [[self.b[i] - self.b_var[i] * t, self.b[i] + self.b_var[i] * t] for
@@ -58,18 +65,27 @@ class OLS(LinearModel):
     def fit(self, x, y, poly_deg):
         self.N = x.shape[0]
         self.poly_deg = poly_deg
-        X, self.params = self.design_matrix(x, poly_deg)
+        X, self.params = self.design_matrix(x, poly_deg, intercept=False)
+        X = self.normalize_design_matrix(X)
 
-        self.inv_cov_matrix = np.linalg.inv(X.T @ X)
-        self.b = self.inv_cov_matrix @ X.T @ y
+        self.inv_cov_matrix = np.linalg.pinv(X.T @ X)
+
+        self.params += 1
+        self.eff_params = np.trace(X @ self.inv_cov_matrix @ X.T) + 1
+        self.b = np.zeros(self.params)
+        self.b[0] = np.mean(y)
+        self.b[1:] = self.inv_cov_matrix @ X.T @ y
 
         self.eff_params = self.params
-        self.b_var = np.diag(self.inv_cov_matrix) *\
-            self.N / (self.N - self.eff_params) * self.mse(x, y)
+        self.b_var = np.zeros(self.params)
+        self.b_var[0] = 1 / self.N
+        self.b_var[1:] = np.diag(self.inv_cov_matrix)
+        self.b_var *= self.N / (self.N - self.eff_params) * self.mse(x, y)
 
     def predict(self, x):
-        X, P = self.design_matrix(x, self.poly_deg)
-        pred = X @ self.b
+        X, P = self.design_matrix(x, self.poly_deg, intercept=False)
+        X = self.normalize_design_matrix(X)
+        pred = X @ self.b[1:] + self.b[0]
         return pred
 
 
@@ -78,24 +94,22 @@ class Ridge(LinearModel):
         self.N = x.shape[0]
         self.poly_deg = poly_deg
         X, self.params = self.design_matrix(x, poly_deg, intercept=False)
-        self.X_mean = np.mean(X, axis=0)
-        self.X_std = np.std(X, axis=0)
+        X = self.normalize_design_matrix(X)
 
-        X_norm = (X - self.X_mean[np.newaxis, :]) / self.X_std[np.newaxis, :]
-        self.inv_cov_matrix = np.linalg.pinv(X_norm.T @ X_norm +
-                                             lamb * np.identity(self.params))
+        self.inv_cov_matrix = np.linalg.pinv(
+            X.T @ X + lamb * np.identity(self.params))
 
         self.params += 1
-        #self.eff_params = np.trace(X_norm @ self.inv_cov_matrix @ X_norm.T) + 1
+        self.eff_params = np.trace(X @ self.inv_cov_matrix @ X.T) + 1
         self.b = np.zeros(self.params)
         self.b[0] = np.mean(y)
-        self.b[1:] = self.inv_cov_matrix @ X_norm.T @ y
+        self.b[1:] = self.inv_cov_matrix @ X.T @ y
 
-        #self.b_var = np.zeros(self.params)
-        #self.b_var[0] = 1 / self.N
-        # self.b_var[1:] = np.diag(self.inv_cov_matrix @
-        #                         X.T @ X @ self.inv_cov_matrix)
-        #self.b_var *= self.N / (self.N - self.eff_params) * self.mse(x, y)
+        self.b_var = np.zeros(self.params)
+        self.b_var[0] = 1 / self.N
+        self.b_var[1:] = np.diag(self.inv_cov_matrix @
+                                 X.T @ X @ self.inv_cov_matrix)
+        self.b_var *= self.N / (self.N - self.eff_params) * self.mse(x, y)
 
     def predict(self, x):
         X, P = self.design_matrix(x, self.poly_deg, intercept=False)
@@ -126,6 +140,21 @@ def split_data(indicies, ratio=0.25):
     test_idx = indicies[:test_set_size]
     train_idx = indicies[test_set_size:]
     return train_idx, test_idx
+
+
+def generate_labels(N):
+    labels = []
+    for i in range(N + 1):
+        for j in range(N - i + 1):
+            label = f"x^{j}*y^{i}"
+            label = label.replace("x^0*y^0", "1")
+            label = label.replace("x^0*", "")
+            label = label.replace("*y^0", "")
+            label = label.replace("x^1", "x")
+            label = label.replace("y^1", "y")
+            labels.append(label)
+
+    return labels
 
 
 def kfold(indicies, k=5):

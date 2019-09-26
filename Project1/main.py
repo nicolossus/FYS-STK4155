@@ -4,6 +4,7 @@
 import random as rd
 
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import numpy as np
 from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, LinearLocator
@@ -25,8 +26,8 @@ mse = []
 r2 = []
 conf_intervals = []
 model_ols = OLS()
-poly_deg = 5
-p = 0.9
+poly_deg = 5  # complexity
+p = 0.9  # 90% confidence interval
 for i in range(len(N)):
     x = np.random.uniform(0, 1, (N[i], 2))
     z = frankeFunction(x[:, 0], x[:, 1]) + \
@@ -35,16 +36,34 @@ for i in range(len(N)):
     mse.append(model_ols.mse(x, z))
     r2.append(model_ols.r2(x, z))
     conf_intervals.append(model_ols.confidence_interval(p))
+
+
+labels = generate_labels(poly_deg)
+cmap = plt.get_cmap("Greens")
+norm = matplotlib.colors.Normalize(vmin=-10, vmax=len(conf_intervals[0]))
+
+for n in range(len(N)):
+    print(
+        f"mse={mse[n]:.3f}, r2={r2[n]:.3f} for N={N[n]}, sigma2={sigma2[n]}")
+    fig = plt.figure()
+    fig.suptitle(f"N = {N[n]}, $\sigma^2$ = {sigma2[n]}")
+    plt.yticks(np.arange(model_ols.params), labels)
+    plt.grid()
+
+    for i in range(len(conf_intervals[0])):
+        plt.plot(conf_intervals[n][i], (i, i), color=cmap(norm(i)))
+        plt.plot(conf_intervals[n][i], (i, i), "o", color=cmap(norm(i)))
+    fig.savefig(f"./figures/conf_{N[n]}_{sigma2[n]}.pdf")
 # ----------------------------------------------------------------------------
 
 
 # Perform data split and calculate training/testing mse
 # ----------------------------------------------------------------------------
-N = 1000
+N = 300
 sigma2 = 1
 ratio = 0.25
 model_ols = OLS()
-poly_deg = 6
+poly_deg = 7
 
 x = np.random.uniform(0, 1, (N, 2))
 z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
@@ -53,63 +72,63 @@ train_idx, test_idx = split_data(list(range(N)), ratio=ratio)
 model_ols.fit(x[train_idx], z[train_idx], poly_deg)
 mse_train = model_ols.mse(x[train_idx], z[train_idx])
 mse_test = model_ols.mse(x[test_idx], z[test_idx])
-print(mse_train, mse_test)
+print(
+    f"mse_train = {mse_train:.3f} , mse_test = {mse_test:.3f}, for N = {N}" +
+    f", sigma2 = {sigma2}, poly_deg = {poly_deg}")
 # ----------------------------------------------------------------------------
 
 
 # Calculate train/test MSE for varying complexity using CV on OLS
 # ----------------------------------------------------------------------------
-N = 1000
-sigma2 = 1
+N = [500, 5000]
+repeat = 25
+sigma2 = 0.5
 model_ols = OLS()
 poly_deg_max = 9
-mse_train = np.zeros(poly_deg_max,)
-mse_test = np.zeros(poly_deg_max)
+mse_train = np.zeros((repeat, poly_deg_max))
+mse_test = np.zeros((repeat, poly_deg_max))
 k = 5
 
-x = np.random.uniform(0, 1, (N, 2))
-z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+for n in N:
+    for r in range(repeat):
+        x = np.random.uniform(0, 1, (n, 2))
+        z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, n)
 
-for i in range(poly_deg_max):
-    folds = kfold(list(range(N)), k=5)
+        for i in range(poly_deg_max):
+            folds = kfold(list(range(n)), k=5)
 
-    for j in range(k):
-        train_idx, test_idx = folds(j)
-        model_ols.fit(x[train_idx], z[train_idx], i)
-        mse_train[i] += model_ols.mse(x[train_idx], z[train_idx])
-        mse_test[i] += model_ols.mse(x[test_idx], z[test_idx])
+            for j in range(k):
+                train_idx, test_idx = folds(j)
+                model_ols.fit(x[train_idx], z[train_idx], i)
+                mse_train[r, i] += model_ols.mse(x[train_idx], z[train_idx])
+                mse_test[r, i] += model_ols.mse(x[test_idx], z[test_idx])
 
-    mse_train[i] /= k
-    mse_test[i] /= k
+            mse_train[r, i] /= k
+            mse_test[r, i] /= k
 
-plt.plot(np.arange(poly_deg_max), mse_train)
-plt.plot(np.arange(poly_deg_max), mse_test)
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
+    fig = plt.figure()
+    fig.suptitle(f"Train vs Test MSE, N = {n}, $\sigma^2$ = {sigma2}")
+    axes = plt.gca()
+    axes.set_ylim([0.2, 0.5])
+    plt.grid()
 
-N = 10000
-x = np.random.uniform(0, 1, (N, 2))
-z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+    plt.plot(np.arange(poly_deg_max), np.mean(
+        mse_train, axis=0), color="blue", linewidth=3)
+    plt.plot(np.arange(poly_deg_max), np.mean(
+        mse_test, axis=0), color="red", linewidth=3)
 
-for i in range(poly_deg_max):
-    folds = kfold(list(range(N)), k=5)
+    for r in range(repeat):
+        plt.plot(np.arange(poly_deg_max),
+                 mse_train[r], color="blue", alpha=0.1)
+        plt.plot(np.arange(poly_deg_max), mse_test[r], color="red", alpha=0.1)
 
-    for j in range(k):
-        train_idx, test_idx = folds(j)
-        model_ols.fit(x[train_idx], z[train_idx], i)
-        mse_train[i] += model_ols.mse(x[train_idx], z[train_idx])
-        mse_test[i] += model_ols.mse(x[test_idx], z[test_idx])
+    plt.legend(["train MSE", "test MSE"])
+    fig.savefig(f"./figures/train_test_mse_{n}_{sigma2}.pdf")
 
-    mse_train[i] /= k
-    mse_test[i] /= k
 
-plt.plot(np.arange(poly_deg_max), mse_train)
-plt.plot(np.arange(poly_deg_max), mse_test)
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
 # ----------------------------------------------------------------------------
 
-
+"""
 # Ridge
 # ----------------------------------------------------------------------------
 N = 1000
@@ -209,3 +228,4 @@ plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
 plt.legend(["Training MSE", "Test MSE"])
 plt.show()
 # ----------------------------------------------------------------------------
+"""

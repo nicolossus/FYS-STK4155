@@ -39,7 +39,7 @@ print(len(y))
 x = np.array([[i, j] for i, j in zip(x, y)])
 
 model_ridge = Ridge()
-model_ridge.fit(x, z, 50, lamb=0.00000001)
+model_ridge.fit(x, z, 80, lamb=0)
 
 terrain_fitted = model_ridge.predict(x)
 terrain_fitted = np.reshape(terrain_fitted, (m, n))

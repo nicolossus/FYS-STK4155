@@ -41,10 +41,10 @@ def test_ols():
         b_exp[4] * x[:, 0] * x[:, 1] + b_exp[5] * x[:, 1]**2
 
     model.fit(x, y, 2)
-    b_comp = model.b
+    y_pred = model.predict(x)
 
-    for i in range(len(b_exp)):
-        assert abs(b_comp[i] - b_exp[i]) < 1e-8
+    for i in range(N):
+        assert abs(y_pred[i] - y[i]) < 1e-8
 
 
 def test_ridge_vs_ols():
