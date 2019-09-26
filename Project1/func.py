@@ -11,6 +11,8 @@ from sklearn.linear_model import Lasso
 
 
 def frankeFunction(x, y):
+    """
+    """
     term1 = 0.75 * np.exp(-(0.25 * (9 * x - 2)**2) - 0.25 * ((9 * y - 2)**2))
     term2 = 0.75 * np.exp(-((9 * x + 1)**2) / 49.0 - 0.1 * (9 * y + 1))
     term3 = 0.5 * np.exp(-(9 * x - 7)**2 / 4.0 - 0.25 * ((9 * y - 3)**2))
@@ -19,7 +21,14 @@ def frankeFunction(x, y):
 
 
 class LinearModel:
+    """
+    Linear model, superclass
+    """
+
     def design_matrix(self, x, poly_deg, intercept=True):
+        """
+        Generate design matrix
+        """
         n = x.shape[0]
         params = int(((poly_deg + 2) * (poly_deg + 1)) / 2) - (not intercept)
         X = np.zeros((n, params))
@@ -33,6 +42,9 @@ class LinearModel:
         return X, params
 
     def normalize_design_matrix(self, X):
+        """
+        Normalize design matrix
+        """
         self.X_mean = np.mean(X, axis=0)
         self.X_std = np.std(X, axis=0)
 
@@ -40,17 +52,26 @@ class LinearModel:
         return X_norm
 
     def confidence_interval(self, p):
+        """
+        Calculate CI
+        """
         t = stats.t(df=self.N - self.eff_params).ppf(2 * p - 1)
         conf_intervals = [[self.b[i] - self.b_var[i] * t, self.b[i] + self.b_var[i] * t] for
                           i in range(self.params)]
         return conf_intervals
 
     def mse(self, x, y):
+        """
+        Calculate MSE
+        """
         n = y.size
         _mse = 1 / n * np.sum((y - self.predict(x))**2)
         return _mse
 
     def r2(self, x, y):
+        """
+        Calculate R2
+        """
         n = y.size
         y_ave = np.mean(y)
         _r2 = 1 - np.sum((y - self.predict(x))**2) / np.sum((y - y_ave)**2)
@@ -58,7 +79,14 @@ class LinearModel:
 
 
 class OLS(LinearModel):
+    """
+    OLS, subclass of LinearModel
+    """
+
     def fit(self, x, y, poly_deg):
+        """
+        Fit data
+        """
         self.N = x.shape[0]
         self.poly_deg = poly_deg
         X, self.params = self.design_matrix(x, poly_deg, intercept=False)
@@ -79,6 +107,9 @@ class OLS(LinearModel):
         self.b_var *= self.N / (self.N - self.eff_params) * self.mse(x, y)
 
     def predict(self, x):
+        """
+        Predict
+        """
         X, P = self.design_matrix(x, self.poly_deg, intercept=False)
         X = self.normalize_design_matrix(X)
         pred = X @ self.b[1:] + self.b[0]
@@ -86,7 +117,14 @@ class OLS(LinearModel):
 
 
 class Ridge(LinearModel):
+    """
+    Ridge regression, subclass of LinearModel
+    """
+
     def fit(self, x, y, poly_deg, lamb):
+        """
+        Fit
+        """
         self.N = x.shape[0]
         self.poly_deg = poly_deg
         X, self.params = self.design_matrix(x, poly_deg, intercept=False)
@@ -108,6 +146,9 @@ class Ridge(LinearModel):
         self.b_var *= self.N / (self.N - self.eff_params) * self.mse(x, y)
 
     def predict(self, x):
+        """
+        Predict
+        """
         X, P = self.design_matrix(x, self.poly_deg, intercept=False)
         X_norm = (X - self.X_mean[np.newaxis, :]) / self.X_std[np.newaxis, :]
         pred = X_norm @ self.b[1:] + self.b[0]
@@ -115,7 +156,14 @@ class Ridge(LinearModel):
 
 
 class MyLasso(LinearModel):
+    """
+    Lasso regression, subclass of LinearModel
+    """
+
     def fit(self, x, y, poly_deg, lamb):
+        """
+        fit
+        """
         self.N = x.shape[0]
         self.poly_deg = poly_deg
         X, self.params = self.design_matrix(x, poly_deg, intercept=False)
@@ -128,12 +176,18 @@ class MyLasso(LinearModel):
         self.b[1:] = self.lasso.coef_
 
     def predict(self, x):
+        """
+        predict
+        """
         X, P = self.design_matrix(x, self.poly_deg, intercept=False)
         pred = self.lasso.predict(X)
         return pred
 
 
 def split_data(indicies, ratio=0.25):
+    """
+    Split data
+    """
     n = len(indicies)
     test_set_size = int(ratio * n)
     rd.shuffle(indicies)
@@ -143,8 +197,10 @@ def split_data(indicies, ratio=0.25):
 
 
 def generate_labels(N):
+    """
+    Generate labels
+    """
     labels = []
-
     for i in range(N + 1):
         for j in range(i + 1):
             label = f"x^{i-j} \\cdot y^{j}"
@@ -159,6 +215,9 @@ def generate_labels(N):
 
 
 def kfold(indicies, k=5):
+    """
+    CV
+    """
     n = len(indicies)
     rd.shuffle(indicies)
     N = ceil(n / k)
@@ -180,6 +239,9 @@ def kfold(indicies, k=5):
 
 
 def down_sample(terrain, N):
+    """
+    down sample
+    """
     m, n = terrain.shape
     m_new, n_new = int(m / N), int(n / N)
     terrain_new = np.zeros((m_new, n_new))
@@ -187,7 +249,6 @@ def down_sample(terrain, N):
         for j in range(n_new):
             slice = terrain[N * i:N * (i + 1), N * j:N * (j + 1)]
             terrain_new[i, j] = 1 / (slice.size)**2 * np.sum(slice)
-
     return terrain_new
 
 
