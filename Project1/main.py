@@ -80,6 +80,8 @@ for n in range(len(N)):
     fig.savefig(fig_path(f"conf_{N[n]}_{sigma2[n]}.pdf"))
 # ----------------------------------------------------------------------------
 
+
+
 # Perform data split and calculate training/testing mse
 # ----------------------------------------------------------------------------
 N = 300
@@ -150,7 +152,7 @@ for n in range(len(N)):  # calculate for small and large dataset
     plt.legend(["train MSE", "test MSE"])
     fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
 
-"""
+
 # ----------------------------------------------------------------------------
 
 
@@ -158,115 +160,59 @@ for n in range(len(N)):  # calculate for small and large dataset
 # ----------------------------------------------------------------------------
 N = 1000
 sigma2 = 1
-p = 0.9  # 90% confidenceinterval
 x = np.random.uniform(0, 1, (N, 2))
 z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
 model_ridge = Ridge()
 poly_deg = 5
-lamb = np.logspace(1, 5, 20)
+lamb = np.logspace(1, 5, 15)
 parameters = []
 
 for i in range(len(lamb)):
     model_ridge.fit(x, z, poly_deg, lamb[i])
     parameters.append(model_ridge.b[1:])
-
-
 parameters = np.array(parameters)
+
+
+cmap = plt.get_cmap("Greens")
+norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_ridge.params - 1)
+
 plt.grid()
-plt.plot(np.log(lamb), parameters)
+for i in range(model_ridge.params - 1):
+    plt.plot(np.log(lamb), parameters[:, i], color=cmap(norm(i)))
+
 plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
          (0, 0), color="black", linewidth=2)
 plt.show()
-"""
-poly_deg = np.arange(1, poly_deg_max + 1)
-lamb = [1e-2, 1e-1, 1e0, 1e1]
-mse_train = np.zeros((len(lamb), len(poly_deg)))
-mse_test = np.zeros((len(lamb), len(poly_deg)))
-k = 5
-
-for l in range(len(lamb)):
-    for i in range(len(poly_deg)):
-        folds = kfold(list(range(N)), k=5)
-
-        for j in range(k):
-            train_idx, test_idx = folds(j)
-            model_ridge.fit(x[train_idx], z[train_idx],
-                            poly_deg[i], lamb[l])
-            mse_train[l, i] += model_ridge.mse(x[train_idx], z[train_idx])
-            mse_test[l, i] += model_ridge.mse(x[test_idx], z[test_idx])
-
-        mse_train[l, i] /= k
-        mse_test[l, i] /= k
-
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[0])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[0])
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
-
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[1])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[1])
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
-
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[2])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[2])
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
-
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[3])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
-"""
 # ----------------------------------------------------------------------------
-
+"""
 
 # Lasso
 # ----------------------------------------------------------------------------
 N = 1000
-sigma2 = 1
+sigma2 = 0.01
 x = np.random.uniform(0, 1, (N, 2))
 z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
 model_lasso = MyLasso()
-poly_deg_max = 9
-poly_deg = np.arange(1, poly_deg_max + 1)
-lamb = [1e-2, 1e-1, 1e0, 1e1]
-mse_train = np.zeros((len(lamb), len(poly_deg)))
-mse_test = np.zeros((len(lamb), len(poly_deg)))
-k = 5
+poly_deg = 5
+lamb = np.logspace(1e-5, 1e-2, 15)
+parameters = []
 
-for l in range(len(lamb)):
-    for i in range(len(poly_deg)):
-        folds = kfold(list(range(N)), k=5)
+for i in range(len(lamb)):
+    model_lasso.fit(x, z, poly_deg, lamb[i])
+    print(model_lasso.b[0])
+    parameters.append(model_lasso.b)
+parameters = np.array(parameters)
 
-        for j in range(k):
-            train_idx, test_idx = folds(j)
-            model_lasso.fit(x[train_idx], z[train_idx], poly_deg[i], lamb[l])
-            mse_train[l, i] += model_lasso.mse(x[train_idx], z[train_idx])
-            mse_test[l, i] += model_lasso.mse(x[test_idx], z[test_idx])
+cmap = plt.get_cmap("Greens")
+norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_lasso.params - 1)
 
-        mse_train[l, i] /= k
-        mse_test[l, i] /= k
+plt.grid()
+for i in range(model_lasso.params - 1):
+    plt.plot(np.log(lamb), parameters[:, i], color=cmap(norm(i)))
 
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[0])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[0])
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
-
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[1])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[1])
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
-
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[2])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[2])
-plt.legend(["Training MSE", "Test MSE"])
-plt.show()
-
-plt.plot(np.arange(1, poly_deg_max + 1), mse_train[3])
-plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
-plt.legend(["Training MSE", "Test MSE"])
+plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
+         (0, 0), color="black", linewidth=2)
 plt.show()
 # ----------------------------------------------------------------------------
