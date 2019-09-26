@@ -9,12 +9,17 @@ from matplotlib.ticker import FormatStrFormatter, LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
 from func import *
+import os
 
 # Set seeds
 np.random.seed(42)
 rd.seed(42)
+print(os.getcwd())
 
+if not os.path.exists("./figures"):
+    os.makedirs("./figures")
 
+"""
 # OLS on varying amounts of data and noise. Calculate training MSE, R2 and CI
 # ----------------------------------------------------------------------------
 N = [100, 100, 10000, 10000]  # Number of data points
@@ -78,6 +83,7 @@ print(
 # Calculate train/test MSE for varying complexity using CV on OLS
 # ----------------------------------------------------------------------------
 N = [500, 5000]
+y_lim = [[0.2, 0.8], [0.26, 0.45]]
 repeat = 25
 sigma2 = 0.5
 model_ols = OLS()
@@ -86,13 +92,14 @@ mse_train = np.zeros((repeat, poly_deg_max))
 mse_test = np.zeros((repeat, poly_deg_max))
 k = 5
 
-for n in N:
-    for r in range(repeat):
-        x = np.random.uniform(0, 1, (n, 2))
-        z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, n)
+for n in range(len(N)):  # calculate for small and large dataset
+    for r in range(repeat):  # resample to make many models
+        x = np.random.uniform(0, 1, (N[n], 2))
+        z = frankeFunction(x[:, 0], x[:, 1]) + \
+            np.random.normal(0, sigma2, N[n])
 
         for i in range(poly_deg_max):
-            folds = kfold(list(range(n)), k=5)
+            folds = kfold(list(range(N[n])), k=5)
 
             for j in range(k):
                 train_idx, test_idx = folds(j)
@@ -104,9 +111,9 @@ for n in N:
             mse_test[r, i] /= k
 
     fig = plt.figure()
-    fig.suptitle(f"Train vs Test MSE, N = {n}, $\sigma^2$ = {sigma2}")
+    fig.suptitle(f"Train vs Test MSE, N = {N[n]}, $\sigma^2$ = {sigma2}")
     axes = plt.gca()
-    axes.set_ylim([0.2, 0.5])
+    axes.set_ylim(y_lim[n])
     plt.grid()
 
     plt.plot(np.arange(poly_deg_max), np.mean(
@@ -120,12 +127,12 @@ for n in N:
         plt.plot(np.arange(poly_deg_max), mse_test[r], color="red", alpha=0.1)
 
     plt.legend(["train MSE", "test MSE"])
-    fig.savefig(f"./figures/train_test_mse_{n}_{sigma2}.pdf")
+    fig.savefig(f"./figures/train_test_mse_{N[n]}_{sigma2}.pdf")
 
 
 # ----------------------------------------------------------------------------
-
 """
+
 # Ridge
 # ----------------------------------------------------------------------------
 N = 1000
@@ -134,7 +141,7 @@ x = np.random.uniform(0, 1, (N, 2))
 z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
 model_ridge = Ridge()
-poly_deg_max = 9
+poly_deg = 2
 poly_deg = np.arange(1, poly_deg_max + 1)
 lamb = [1e-2, 1e-1, 1e0, 1e1]
 mse_train = np.zeros((len(lamb), len(poly_deg)))
@@ -176,7 +183,7 @@ plt.legend(["Training MSE", "Test MSE"])
 plt.show()
 # ----------------------------------------------------------------------------
 
-
+"""
 # Lasso
 # ----------------------------------------------------------------------------
 N = 1000
