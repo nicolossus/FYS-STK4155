@@ -9,6 +9,7 @@
 *.exe
 *.x
 .cache
+.pytest_cache
 
 ### C++ ###
 # Prerequisites
