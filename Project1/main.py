@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import matplotlib.pyplot as plt
+import matplotlib.colors
 import numpy as np
 from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, LinearLocator
@@ -22,8 +23,8 @@ mse = []
 r2 = []
 conf_intervals = []
 model_ols = OLS()
-poly_deg = 5
-p = 0.9
+poly_deg = 5  # complexity
+p = 0.9  # 90% confidence interval
 for i in range(len(N)):
     x = np.random.uniform(0, 1, (N[i], 2))
     z = frankeFunction(x[:, 0], x[:, 1]) + \
@@ -32,8 +33,23 @@ for i in range(len(N)):
     mse.append(model_ols.mse(x, z))
     r2.append(model_ols.r2(x, z))
     conf_intervals.append(model_ols.confidence_interval(p))
-# ----------------------------------------------------------------------------
 
+labels = generate_labels(poly_deg)
+cmap = plt.get_cmap("Greens")
+norm = matplotlib.colors.Normalize(vmin=-10, vmax=len(conf_intervals[0]))
+
+for n in range(len(N)):
+    fig = plt.figure()
+    fig.suptitle(f"N = {N[n]}, $\sigma^2$ = {sigma2[n]}")
+    plt.yticks(np.arange(model_ols.params), labels)
+    plt.grid()
+
+    for i in range(len(conf_intervals[0])):
+        plt.plot(conf_intervals[n][i], (i, i), color=cmap(norm(i)))
+        plt.plot(conf_intervals[n][i], (i, i), "o", color=cmap(norm(i)))
+    fig.savefig("conf_{N[n]}_{sigma2[n]}.pdf")
+# ----------------------------------------------------------------------------
+"""
 
 # Perform data split and calculate training/testing mse
 # ----------------------------------------------------------------------------
@@ -206,3 +222,4 @@ plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
 plt.legend(["Training MSE", "Test MSE"])
 plt.show()
 # ----------------------------------------------------------------------------
+"""
