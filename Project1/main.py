@@ -8,12 +8,19 @@ import sys
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
 
 from func import *
+
+"""
+DEBUGGER
+remove when done
+"""
+# sys.exit(0)
 
 # Set seed for debugging purposes
 np.random.seed(42)
@@ -23,14 +30,19 @@ ROOT = str(os.getcwd())
 PROJECT = ROOT
 PROJECT_ID = "/Project1"
 FIGURE_ID = "/Figures"
+TABLE_ID = "/Tables"
 
-if PROJECT_ID not in ROOT:
+if PROJECT_ID not in PROJECT:
     PROJECT += PROJECT_ID
 
 if not os.path.exists(PROJECT + FIGURE_ID):
     os.makedirs(PROJECT + FIGURE_ID)
 
+if not os.path.exists(PROJECT + TABLE_ID):
+    os.makedirs(PROJECT + TABLE_ID)
+
 FIGURE_PATH = PROJECT + FIGURE_ID
+TABLE_PATH = PROJECT + TABLE_ID
 
 
 def fig_path(fig_id):
@@ -40,45 +52,81 @@ def fig_path(fig_id):
     return os.path.join(FIGURE_PATH + "/", fig_id)
 
 
+def tab_path(tab_id):
+    """
+    Input name of figure to load or save with extension as dtype str
+    """
+    return os.path.join(TABLE_PATH + "/", tab_id)
+
+
+# def OLS_():
 """
-# OLS on varying amounts of data and noise. Calculate training MSE, R2 and CI
-# ----------------------------------------------------------------------------
-N = [100, 100, 10000, 10000]  # Number of data points
-sigma2 = [0.01, 1, 0.01, 1]   # Irreducable error
-mse = []
-r2 = []
-conf_intervals = []
-model_ols = OLS()
-poly_deg = 5  # complexity
-p = 0.9  # 90% confidence interval
-for i in range(len(N)):
-    x = np.random.uniform(0, 1, (N[i], 2))
-    z = frankeFunction(x[:, 0], x[:, 1]) + \
-        np.random.normal(0, sigma2[i], N[i])
-    model_ols.fit(x, z, poly_deg)
-    mse.append(model_ols.mse(x, z))
-    r2.append(model_ols.r2(x, z))
-    conf_intervals.append(model_ols.confidence_interval(p))
+OLS on varying amounts of data and noise. Calculate training MSE, R2 and CI
+"""
 
 
-labels = generate_labels(poly_deg)
-cmap = plt.get_cmap("Greens")
-norm = matplotlib.colors.Normalize(vmin=-10, vmax=len(conf_intervals[0]))
+def OLS_stat():
+    """
+    Statistical summary with OLS on data of different size and varying noise.
+    Summary includes training MSE, R2 and CI
+    """
+    N = [100, 1000]               # Number of data points
+    sigma2 = [0.01, 1]            # Irreducable error
 
-for n in range(len(N)):
-    print(
-        f"mse={mse[n]:.3f}, r2={r2[n]:.3f} for N={N[n]}, sigma2={sigma2[n]}")
-    fig = plt.figure()
-    fig.suptitle(f"N = {N[n]}, $\\sigma^2$ = {sigma2[n]}")
-    plt.yticks(np.arange(model_ols.params), labels)
-    plt.grid()
+    # Initialize model
+    model_ols = OLS()
+    poly_deg = 5                   # complexity
+    p = 0.9                        # 90% confidence interval
 
-    for i in range(len(conf_intervals[0])):
-        plt.plot(conf_intervals[n][i], (i, i), color=cmap(norm(i)))
-        plt.plot(conf_intervals[n][i], (i, i), "o", color=cmap(norm(i)))
-    # fig.savefig(f"./figures/conf_{N[n]}_{sigma2[n]}.pdf")
-    fig.savefig(fig_path(f"conf_{N[n]}_{sigma2[n]}.pdf"))
-# ----------------------------------------------------------------------------
+    # Dataframe for storing results
+    df = pd.DataFrame(columns=['N', '$\sigma^2$', 'MSE', '$R^2$'])
+
+    # Setup for plotting
+    labels = generate_labels(poly_deg)
+    cmap = plt.get_cmap("Greens")
+
+    for n in N:
+        for s2 in sigma2:
+            x = np.random.uniform(0, 1, (n, 2))
+            noise = np.random.normal(0, s2, n)
+            z = frankeFunction(x[:, 0], x[:, 1] + noise)
+            model_ols.fit(x, z, poly_deg)
+
+            mse = model_ols.mse(x, z)
+            r2 = model_ols.r2(x, z)
+            df = df.append({'N': n, '$\sigma^2$': s2, 'MSE': mse,
+                            '$R^2$': r2}, ignore_index=True)
+
+            CI = model_ols.confidence_interval(p)
+            norm = matplotlib.colors.Normalize(vmin=-10, vmax=len(CI))
+            fig = plt.figure()
+            fig.suptitle(f"N = {n}, $\\sigma^2$ = {s2}")
+            plt.yticks(np.arange(model_ols.params), labels)
+            plt.grid()
+            for i in range(len(CI)):
+                plt.plot(CI[i], (i, i), color=cmap(norm(i)))
+                plt.plot(CI[i], (i, i), "o", color=cmap(norm(i)))
+            fig.savefig(fig_path(f"conf_{n}_{s2}.pdf"))
+
+    # Render dataframe to a LaTeX tabular environment table and write to file
+    pd.options.display.float_format = '{:,.3f}'.format
+    df = df.apply(lambda x: x.astype(
+        int) if np.allclose(x, x.astype(int)) else x)
+
+    with open(tab_path('ols_stat.tex'), 'w') as f:
+        f.write(df.to_latex(index=False, escape=False, column_format='cccc'
+                            ).replace('\\toprule', '\\hline \\hline'
+                                      ).replace('\\midrule', '\\hline \\hline'
+                                                ).replace('\\bottomrule', '\\hline \\hline'))
+
+
+OLS_stat()
+
+"""
+DEBUGGER
+remove when done
+"""
+sys.exit(0)
 
 # Perform data split and calculate training/testing mse
 # ----------------------------------------------------------------------------
@@ -132,7 +180,7 @@ for n in range(len(N)):  # calculate for small and large dataset
             mse_test[r, i] /= k
 
     fig = plt.figure()
-    fig.suptitle(f"Train vs Test MSE, N = {N[n]}, $\sigma^2$ = {sigma2}")
+    fig.suptitle(f"Train vs Test MSE, N = {N[n]}, $\\sigma^2$ = {sigma2}")
     axes = plt.gca()
     axes.set_ylim(y_lim[n])
     plt.grid()
@@ -150,7 +198,7 @@ for n in range(len(N)):  # calculate for small and large dataset
     plt.legend(["train MSE", "test MSE"])
     fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
 
-"""
+
 # ----------------------------------------------------------------------------
 
 
@@ -270,3 +318,6 @@ plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
 plt.legend(["Training MSE", "Test MSE"])
 plt.show()
 # ----------------------------------------------------------------------------
+
+
+# if __name__ == "__main__":
