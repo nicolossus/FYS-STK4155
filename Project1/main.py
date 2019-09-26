@@ -35,7 +35,7 @@ FIGURE_PATH = PROJECT + FIGURE_ID
 
 def fig_path(fig_id):
     """
-    Input name of figure to load or save as dtype str
+    Input name of figure to load or save with extension as dtype str
     """
     return os.path.join(FIGURE_PATH + "/", fig_id)
 
