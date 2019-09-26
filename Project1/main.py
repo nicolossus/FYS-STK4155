@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import random as rd
 
 import matplotlib.colors
@@ -16,6 +17,27 @@ from func import *
 # Set seed for debugging purposes
 np.random.seed(42)
 rd.seed(42)
+
+
+ROOT = str(os.getcwd())
+PROJECT = ROOT
+PROJECT_ID = "/Project1"
+FIGURE_ID = "/Figures"
+
+if PROJECT_ID not in ROOT:
+    PROJECT += PROJECT_ID
+
+if not os.path.exists(PROJECT + FIGURE_ID):
+    os.makedirs(PROJECT + FIGURE_ID)
+
+FIGURE_PATH = PROJECT + FIGURE_ID
+
+
+def fig_path(fig_id):
+    """
+    Input name of figure to load or save as dtype str
+    """
+    return os.path.join(FIGURE_PATH + "/", fig_id)
 
 
 # OLS on varying amounts of data and noise. Calculate training MSE, R2 and CI
@@ -46,14 +68,15 @@ for n in range(len(N)):
     print(
         f"mse={mse[n]:.3f}, r2={r2[n]:.3f} for N={N[n]}, sigma2={sigma2[n]}")
     fig = plt.figure()
-    fig.suptitle(f"N = {N[n]}, $\sigma^2$ = {sigma2[n]}")
+    fig.suptitle(f"N = {N[n]}, $\\sigma^2$ = {sigma2[n]}")
     plt.yticks(np.arange(model_ols.params), labels)
     plt.grid()
 
     for i in range(len(conf_intervals[0])):
         plt.plot(conf_intervals[n][i], (i, i), color=cmap(norm(i)))
         plt.plot(conf_intervals[n][i], (i, i), "o", color=cmap(norm(i)))
-    fig.savefig(f"./figures/conf_{N[n]}_{sigma2[n]}.pdf")
+    # fig.savefig(f"./figures/conf_{N[n]}_{sigma2[n]}.pdf")
+    fig.savefig(fig_path(f"conf_{N[n]}_{sigma2[n]}.pdf"))
 # ----------------------------------------------------------------------------
 
 
@@ -123,7 +146,7 @@ for n in N:
         plt.plot(np.arange(poly_deg_max), mse_test[r], color="red", alpha=0.1)
 
     plt.legend(["train MSE", "test MSE"])
-    fig.savefig(f"./figures/train_test_mse_{n}_{sigma2}.pdf")
+    fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
 
 
 # ----------------------------------------------------------------------------
