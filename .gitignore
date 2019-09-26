@@ -5,6 +5,7 @@
 *.bin
 *.exe
 *.x
+.cache
 
 ### C++ ###
 # Prerequisites

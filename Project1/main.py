@@ -13,15 +13,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
 
 from func import *
-import os
 
 # Set seed for debugging purposes
 np.random.seed(42)
 rd.seed(42)
-print(os.getcwd())
-
-if not os.path.exists("./figures"):
-    os.makedirs("./figures")
 
 ROOT = str(os.getcwd())
 PROJECT = ROOT
@@ -39,7 +34,7 @@ FIGURE_PATH = PROJECT + FIGURE_ID
 
 def fig_path(fig_id):
     """
-    Input name of figure to load or save as dtype str
+    Input name of figure to load or save with extension as dtype str
     """
     return os.path.join(FIGURE_PATH + "/", fig_id)
 
@@ -276,4 +271,3 @@ plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
 plt.legend(["Training MSE", "Test MSE"])
 plt.show()
 # ----------------------------------------------------------------------------
-"""
