@@ -26,12 +26,8 @@ class LinearModel:
 
         idx = 0
         for i in range((not intercept), poly_deg + 1):
-            X[:, idx] = x[:, 0]**i
-            idx += 1
-
-        for i in range(1, poly_deg + 1):
-            for j in range(poly_deg - i + 1):
-                X[:, idx] = (x[:, 0]**j) * (x[:, 1]**i)
+            for j in range(i + 1):
+                X[:, idx] = x[:, 0]**(i - j) * x[:, 1]**j
                 idx += 1
 
         return X, params
@@ -122,13 +118,17 @@ class MyLasso(LinearModel):
     def fit(self, x, y, poly_deg, lamb):
         self.N = x.shape[0]
         self.poly_deg = poly_deg
-        X, self.params = self.design_matrix(x, poly_deg)
+        X, self.params = self.design_matrix(x, poly_deg, intercept=False)
 
-        self.lasso = Lasso(alpha=lamb, fit_intercept=True, normalize=True)
+        self.params += 1
+        self.lasso = Lasso(alpha=lamb, fit_intercept=True, max_iter=1000000)
         self.lasso.fit(X, y)
+        self.b = np.zeros(self.params)
+        self.b[0] = self.lasso.intercept_
+        self.b[1:] = self.lasso.coef_
 
     def predict(self, x):
-        X, P = self.design_matrix(x, self.poly_deg)
+        X, P = self.design_matrix(x, self.poly_deg, intercept=False)
         pred = self.lasso.predict(X)
         return pred
 
@@ -144,9 +144,10 @@ def split_data(indicies, ratio=0.25):
 
 def generate_labels(N):
     labels = []
+
     for i in range(N + 1):
-        for j in range(N - i + 1):
-            label = f"x^{j} \\cdot y^{i}"
+        for j in range(i + 1):
+            label = f"x^{i-j} \\cdot y^{j}"
             label = label.replace("x^0 \\cdot y^0", "1")
             label = label.replace("x^0 \\cdot", "")
             label = label.replace("\\cdot y^0", "")

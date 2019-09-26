@@ -13,18 +13,18 @@ def test_design_matrix():
     model = LinearModel()
     x = np.array([[1, 10], [2, 20], [3, 30]])
     X_computed, P = model.design_matrix(x, 2)
-    X_expected = np.array([[1, 1, 1, 10, 10, 100],
-                           [1, 2, 4, 20, 40, 400],
-                           [1, 3, 9, 30, 90, 900]])
+    X_expected = np.array([[1, 1, 10, 1, 10, 100],
+                           [1, 2, 20, 4, 40, 400],
+                           [1, 3, 30, 9, 90, 900]])
     m, n = X_expected.shape
     for i in range(m):
         for j in range(n):
             assert abs(X_computed[i, j] - X_expected[i, j]) < 1e-8
 
     X_computed, P = model.design_matrix(x, 2, intercept=False)
-    X_expected = np.array([[1, 1, 10, 10, 100],
-                           [2, 4, 20, 40, 400],
-                           [3, 9, 30, 90, 900]])
+    X_expected = np.array([[1, 10, 1, 10, 100],
+                           [2, 20, 4, 40, 400],
+                           [3, 30, 9, 90, 900]])
     m, n = X_expected.shape
     for i in range(m):
         for j in range(n):
@@ -84,7 +84,7 @@ def test_lasso_vs_ols():
     model_ols.fit(x, y, 2)
     y_exp = model_ols.predict(x)
 
-    model_lasso.fit(x, y, 2, 0)
+    model_lasso.fit(x, y, 2, 1e-10)
     y_comp = model_lasso.predict(x)
 
     for i in range(N):
