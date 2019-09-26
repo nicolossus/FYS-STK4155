@@ -40,6 +40,7 @@ def fig_path(fig_id):
     return os.path.join(FIGURE_PATH + "/", fig_id)
 
 
+"""
 # OLS on varying amounts of data and noise. Calculate training MSE, R2 and CI
 # ----------------------------------------------------------------------------
 N = [100, 100, 10000, 10000]  # Number of data points
@@ -149,19 +150,35 @@ for n in range(len(N)):  # calculate for small and large dataset
     plt.legend(["train MSE", "test MSE"])
     fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
 
-
-# ----------------------------------------------------------------------------
 """
+# ----------------------------------------------------------------------------
+
+
 # Ridge
 # ----------------------------------------------------------------------------
 N = 1000
 sigma2 = 1
+p = 0.9  # 90% confidenceinterval
 x = np.random.uniform(0, 1, (N, 2))
 z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
 model_ridge = Ridge()
-poly_deg = 2
+poly_deg = 5
+lamb = np.logspace(1, 5, 20)
+parameters = []
 
+for i in range(len(lamb)):
+    model_ridge.fit(x, z, poly_deg, lamb[i])
+    parameters.append(model_ridge.b[1:])
+
+
+parameters = np.array(parameters)
+plt.grid()
+plt.plot(np.log(lamb), parameters)
+plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
+         (0, 0), color="black", linewidth=2)
+plt.show()
+"""
 poly_deg = np.arange(1, poly_deg_max + 1)
 lamb = [1e-2, 1e-1, 1e0, 1e1]
 mse_train = np.zeros((len(lamb), len(poly_deg)))
@@ -201,9 +218,11 @@ plt.plot(np.arange(1, poly_deg_max + 1), mse_train[3])
 plt.plot(np.arange(1, poly_deg_max + 1), mse_test[3])
 plt.legend(["Training MSE", "Test MSE"])
 plt.show()
+"""
 # ----------------------------------------------------------------------------
 
 """
+
 # Lasso
 # ----------------------------------------------------------------------------
 N = 1000
