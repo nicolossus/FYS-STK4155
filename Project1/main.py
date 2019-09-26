@@ -3,6 +3,7 @@
 
 import os
 import random as rd
+import sys
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
@@ -78,7 +79,6 @@ for n in range(len(N)):
     fig.savefig(fig_path(f"conf_{N[n]}_{sigma2[n]}.pdf"))
 # ----------------------------------------------------------------------------
 
-
 # Perform data split and calculate training/testing mse
 # ----------------------------------------------------------------------------
 N = 300
@@ -152,7 +152,6 @@ for n in range(len(N)):  # calculate for small and large dataset
 
 # ----------------------------------------------------------------------------
 """
-
 # Ridge
 # ----------------------------------------------------------------------------
 N = 1000

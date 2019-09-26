@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import random as rd
+from math import ceil
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
-from math import ceil
 from sklearn.linear_model import Lasso
 
 
@@ -146,14 +146,14 @@ def generate_labels(N):
     labels = []
     for i in range(N + 1):
         for j in range(N - i + 1):
-            label = f"x^{j}*y^{i}"
-            label = label.replace("x^0*y^0", "1")
-            label = label.replace("x^0*", "")
-            label = label.replace("*y^0", "")
+            label = f"x^{j} \\cdot y^{i}"
+            label = label.replace("x^0 \\cdot y^0", "1")
+            label = label.replace("x^0 \\cdot", "")
+            label = label.replace("\\cdot y^0", "")
             label = label.replace("x^1", "x")
             label = label.replace("y^1", "y")
+            label = "$" + label + "$"
             labels.append(label)
-
     return labels
 
 
