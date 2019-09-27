@@ -68,6 +68,26 @@ def tab_path(tab_id):
     return os.path.join(TABLE_PATH + "/", tab_id)
 
 
+def plot_Franke():
+    fig = plt.figure()
+    ax = fig.gca(projection="3d")
+    # Make data.
+    x = np.arange(0, 1, 0.05)
+    y = np.arange(0, 1, 0.05)
+    x, y = np.meshgrid(x, y)
+
+    z = frankeFunction(x, y)
+    surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                           linewidth=0, antialiased=False)
+    # Customize the z axis.
+    ax.set_zlim(-0.10, 1.40)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    fig.savefig(fig_path("franke_func.pdf"))
+
+
 def OLS_stat():
     """
     Statistical summary with OLS on data of different size and varying noise.
@@ -111,7 +131,7 @@ def OLS_stat():
                 plt.plot(CI[i], (i, i), color=cmap(norm(i)))
                 plt.plot(CI[i], (i, i), "o", color=cmap(norm(i)))
 
-            fig.suptitle("90% Confidence Interval")
+            plt.gca().set_title("90% Confidence Interval")
             textstr = '\n'.join((
                 "$N = {}$".format(n),
                 "$\\sigma^2 = {}$".format(s2)))
@@ -275,6 +295,7 @@ def Lasso_model():
 
 
 if __name__ == "__main__":
+    plot_Franke()
     # OLS_stat()
     # OLS_split()
     # OLS_CV()

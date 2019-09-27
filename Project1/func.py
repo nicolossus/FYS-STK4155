@@ -250,32 +250,3 @@ def down_sample(terrain, N):
             slice = terrain[N * i:N * (i + 1), N * j:N * (j + 1)]
             terrain_new[i, j] = 1 / (slice.size)**2 * np.sum(slice)
     return terrain_new
-
-
-if __name__ == "__main__":
-
-    fig = plt.figure()
-    ax = fig.gca(projection="3d")
-
-    # Make data.
-    x = np.arange(0, 1, 0.05)
-    y = np.arange(0, 1, 0.05)
-    x, y = np.meshgrid(x, y)
-
-    print(x)
-
-    z = frankeFunction(x, y)
-
-    # Plot the surface.
-
-    surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
-                           linewidth=0, antialiased=False)
-    # Customize the z axis.
-    ax.set_zlim(-0.10, 1.40)
-    ax.zaxis.set_major_locator(LinearLocator(10))
-    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
-    # Add a color bar which maps values to colors.
-
-    fig.colorbar(surf, shrink=0.5, aspect=5)
-
-    plt.show()
