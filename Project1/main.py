@@ -22,10 +22,19 @@ remove when done
 """
 # sys.exit(0)
 
-# Set seed for debugging purposes
+# Set fontsizes in figures
+params = {'legend.fontsize': 'large',
+          'axes.labelsize': 'large',
+          'axes.titlesize': 'large',
+          'xtick.labelsize': 'large',
+          'ytick.labelsize': 'large'}
+plt.rcParams.update(params)
+
+# Set seed
 np.random.seed(42)
 rd.seed(42)
 
+# Set path to save the figures and data files
 ROOT = str(os.getcwd())
 PROJECT = ROOT
 PROJECT_ID = "/Project1"
@@ -88,19 +97,28 @@ def OLS_stat():
 
             mse = model_ols.mse(x, z)
             r2 = model_ols.r2(x, z)
-            df = df.append({'N': n, '$\sigma^2$': s2, 'MSE': mse,
+            df = df.append({'N': n, '$\\sigma^2$': s2, 'MSE': mse,
                             '$R^2$': r2}, ignore_index=True)
 
             CI = model_ols.confidence_interval(p)
             norm = matplotlib.colors.Normalize(vmin=-10, vmax=len(CI))
-            fig = plt.figure()
-            fig.suptitle(f"N = {n}, $\\sigma^2$ = {s2}")
+
+            fig = plt.figure(figsize=(8, 6))
             plt.yticks(np.arange(model_ols.params), labels)
             plt.grid()
+
             for i in range(len(CI)):
                 plt.plot(CI[i], (i, i), color=cmap(norm(i)))
                 plt.plot(CI[i], (i, i), "o", color=cmap(norm(i)))
-            fig.savefig(fig_path(f"conf_{n}_{s2}.pdf"))
+
+            fig.suptitle("90% Confidence Interval")
+            textstr = '\n'.join((
+                "$N = {}$".format(n),
+                "$\\sigma^2 = {}$".format(s2)))
+            props = dict(boxstyle='round', facecolor='lightblue', alpha=0.5)
+            plt.gca().text(0.83, 0.95, textstr, transform=plt.gca().transAxes,
+                           fontsize=14,  verticalalignment='top', bbox=props)
+            fig.savefig(fig_path("conf_{}_{}.pdf".format(n, s2)))
 
     # Render dataframe to a LaTeX tabular environment table and write to file
     pd.options.display.float_format = '{:,.3f}'.format
@@ -120,11 +138,11 @@ def OLS_split():
     """
     Perform data split and calculate training/testing mse
     """
-    N = 300
-    sigma2 = 1
-    ratio = 0.25
-    model_ols = OLS()
-    poly_deg = 7
+    N = 300                # Number of data points
+    sigma2 = 1             # Irreducable error
+    ratio = 0.25           # Train/test ratio
+    model_ols = OLS()      # Initialize model
+    poly_deg = 7           # Polynomial degree (complexity)
 
     x = np.random.uniform(0, 1, (N, 2))
     z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
@@ -134,8 +152,8 @@ def OLS_split():
     mse_train = model_ols.mse(x[train_idx], z[train_idx])
     mse_test = model_ols.mse(x[test_idx], z[test_idx])
     print(
-        f"mse_train = {mse_train:.3f} , mse_test = {mse_test:.3f}, for N = {N}" +
-        f", sigma2 = {sigma2}, poly_deg = {poly_deg}")
+        f"mse_train = {mse_train:.3f} , mse_test = {mse_test:.3f}, for N = {N}"
+        + f", sigma2 = {sigma2}, poly_deg = {poly_deg}")
 
 
 def OLS_CV():
@@ -256,8 +274,8 @@ def Lasso_model():
 
 
 if __name__ == "__main__":
-    OLS_stat()
+    # OLS_stat()
     OLS_split()
     # OLS_CV()
-    Ridge_model()
+    # Ridge_model()
     # Lasso_model()

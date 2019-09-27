@@ -2,7 +2,7 @@
 # Created by https://www.gitignore.io/api/c++,xcode,macos,linux,latex,python,windows,qtcreator,visualstudio
 
 ### Remove before last push when done###
-*.pdf
+*pdf
 
 ### User defined ###
 *.bin
