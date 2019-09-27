@@ -169,7 +169,7 @@ class MyLasso(LinearModel):
         X, self.params = self.design_matrix(x, poly_deg, intercept=False)
 
         self.params += 1
-        self.lasso = Lasso(alpha=lamb, fit_intercept=True, max_iter=1000000)
+        self.lasso = Lasso(alpha=lamb, fit_intercept=True, max_iter=100000)
         self.lasso.fit(X, y)
         self.b = np.zeros(self.params)
         self.b[0] = self.lasso.intercept_

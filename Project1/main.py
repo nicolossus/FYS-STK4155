@@ -221,7 +221,7 @@ def Ridge_model():
 
     model_ridge = Ridge()
     poly_deg = 5
-    lamb = np.logspace(1, 5, 15)
+    lamb = np.logspace(1, 4, 15)
     parameters = []
 
     for i in range(len(lamb)):
@@ -232,13 +232,14 @@ def Ridge_model():
     cmap = plt.get_cmap("Greens")
     norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_ridge.params - 1)
 
+    fig = plt.figure(figsize=(8, 6))
     plt.grid()
     for i in range(model_ridge.params - 1):
         plt.plot(np.log(lamb), parameters[:, i], color=cmap(norm(i)))
 
     plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
              (0, 0), color="black", linewidth=2)
-    plt.show()
+    fig.savefig(fig_path("ridge_shrinkage.pdf"))
 
 
 def Lasso_model():
@@ -252,30 +253,30 @@ def Lasso_model():
 
     model_lasso = MyLasso()
     poly_deg = 5
-    lamb = np.logspace(1e-5, 1e-2, 15)
+    lamb = np.logspace(-4, -1, 15)
     parameters = []
 
     for i in range(len(lamb)):
         model_lasso.fit(x, z, poly_deg, lamb[i])
-        print(model_lasso.b[0])
         parameters.append(model_lasso.b)
     parameters = np.array(parameters)
 
     cmap = plt.get_cmap("Greens")
     norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_lasso.params - 1)
 
+    fig = plt.figure(figsize=(8, 6))
     plt.grid()
     for i in range(model_lasso.params - 1):
-        plt.plot(np.log(lamb), parameters[:, i], color=cmap(norm(i)))
+        plt.plot(np.log10(lamb), parameters[:, i], color=cmap(norm(i)))
 
-    plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
+    plt.plot((np.log10(lamb[0]), np.log10(lamb[-1])),
              (0, 0), color="black", linewidth=2)
-    plt.show()
+    fig.savefig(fig_path("lasso_shrinkage.pdf"))
 
 
 if __name__ == "__main__":
     # OLS_stat()
-    OLS_split()
+    # OLS_split()
     # OLS_CV()
-    # Ridge_model()
-    # Lasso_model()
+    Ridge_model()
+    Lasso_model()
