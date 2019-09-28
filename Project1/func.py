@@ -12,6 +12,7 @@ from sklearn.linear_model import Lasso
 
 def frankeFunction(x, y):
     """
+    Franke's function
     """
     term1 = 0.75 * np.exp(-(0.25 * (9 * x - 2)**2) - 0.25 * ((9 * y - 2)**2))
     term2 = 0.75 * np.exp(-((9 * x + 1)**2) / 49.0 - 0.1 * (9 * y + 1))
@@ -86,6 +87,7 @@ class OLS(LinearModel):
     def fit(self, x, y, poly_deg):
         """
         Fit data
+        pinv - pseudoinverse (svd)
         """
         self.N = x.shape[0]
         self.poly_deg = poly_deg
@@ -124,6 +126,7 @@ class Ridge(LinearModel):
     def fit(self, x, y, poly_deg, lamb):
         """
         Fit
+        pinv - pseudoinverse
         """
         self.N = x.shape[0]
         self.poly_deg = poly_deg
