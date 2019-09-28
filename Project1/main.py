@@ -230,6 +230,10 @@ def OLS_CV():
         fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
 
 
+def ols_model_selection():
+    pass
+
+
 def Ridge_model():
     """
     Ridge
@@ -262,10 +266,39 @@ def Ridge_model():
     fig.savefig(fig_path("ridge_shrinkage.pdf"))
 
 
-def Lasso_model():
+def lasso_shrinkage():
     """
     Lasso
     """
+    N = 1000
+    sigma2 = 0.01
+    x = np.random.uniform(0, 1, (N, 2))
+    z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+
+    model_lasso = MyLasso()
+    poly_deg = 5
+    lamb = np.logspace(-4, -1, 15)
+    parameters = []
+
+    for i in range(len(lamb)):
+        model_lasso.fit(x, z, poly_deg, lamb[i])
+        parameters.append(model_lasso.b)
+    parameters = np.array(parameters)
+
+    cmap = plt.get_cmap("Greens")
+    norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_lasso.params - 1)
+
+    fig = plt.figure(figsize=(8, 6))
+    plt.grid()
+    for i in range(model_lasso.params - 1):
+        plt.plot(np.log10(lamb), parameters[:, i], color=cmap(norm(i)))
+
+    plt.plot((np.log10(lamb[0]), np.log10(lamb[-1])),
+             (0, 0), color="black", linewidth=2)
+    fig.savefig(fig_path("lasso_shrinkage.pdf"))
+
+
+def lasso_mse():
     N = 1000
     sigma2 = 0.01
     x = np.random.uniform(0, 1, (N, 2))
@@ -300,4 +333,4 @@ if __name__ == "__main__":
     # OLS_split()
     # OLS_CV()
     Ridge_model()
-    Lasso_model()
+    lasso_shrinkage()
