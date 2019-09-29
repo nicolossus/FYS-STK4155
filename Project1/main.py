@@ -63,7 +63,7 @@ def fig_path(fig_id):
 
 def tab_path(tab_id):
     """
-    Input name of figure to load or save with extension as dtype str
+    Input name of table to load or save with extension as dtype str
     """
     return os.path.join(TABLE_PATH + "/", tab_id)
 
@@ -156,7 +156,7 @@ def OLS_stat():
 
 def OLS_split():
     """
-    Perform data split and calculate training/testing mse
+    Perform data split and calculate training/testing MSE
     """
     N = 300                # Number of data points
     sigma2 = 1             # Irreducable error
@@ -328,9 +328,10 @@ def lasso_mse():
 
 
 if __name__ == "__main__":
-    plot_Franke()
+    # plot_Franke()
     # OLS_stat()
     # OLS_split()
     # OLS_CV()
     Ridge_model()
-    lasso_shrinkage()
+    # lasso_shrinkage()
+    # lasso_mse()
