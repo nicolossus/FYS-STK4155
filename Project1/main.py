@@ -186,9 +186,10 @@ def OLS_CV():
     sigma2 = 0.5
     model_ols = OLS()
     poly_deg_max = 9
+    k = 5
+
     mse_train = np.zeros((repeat, poly_deg_max))
     mse_test = np.zeros((repeat, poly_deg_max))
-    k = 5
 
     for n in range(len(N)):  # calculate for small and large dataset
         for r in range(repeat):  # resample to make many models
@@ -230,11 +231,24 @@ def OLS_CV():
         fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
 
 
-def ols_model_selection():
-    pass
+def ols_bias_variance():
+    N = 1000
+    sigma2 = 0.5
+
+    x = np.random.uniform(0, 1, (N, 2))
+    z_noiseless = frankeFunction(x[:, 0], x[:, 1])
+    z = z_noiseless + np.random.normal(0, sigma2, N)
+
+    model_ols = OLS()
+    resamples = 20
+
+    for i in range(resamples):
+        x_resample = np.random.uniform(0, 1, (N, 2))
+        z_resample = frankeFunction(x[:, 0], x[:, 1]) + \
+            np.random.normal(0, sigma2, N)
 
 
-def Ridge_model():
+def ridge_shrinkage():
     """
     Ridge
     """
@@ -264,6 +278,37 @@ def Ridge_model():
     plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
              (0, 0), color="black", linewidth=2)
     fig.savefig(fig_path("ridge_shrinkage.pdf"))
+
+
+def ridge_model_selection():
+    N = 200
+    sigma2 = 0.5
+    x = np.random.uniform(0, 1, (N, 2))
+    z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+
+    model_ridge = Ridge()
+    poly_deg = [3, 5, 7, 9]
+    k = 5
+    lamb = np.logspace(-2, 2, 10)
+
+    mse_test = np.zeros((len(poly_deg), len(lamb)))
+
+    folds = kfold(list(range(N)), k)
+
+    for i in range(len(poly_deg)):
+        for j in range(len(lamb)):
+            for l in range(k):
+                train_idx, test_idx = folds(l)
+                model_ridge.fit(x[train_idx], z[train_idx],
+                                poly_deg[i], lamb[j])
+                mse_test[i, j] += model_ridge.mse(x[test_idx], z[test_idx])
+
+            mse_test[i, j] /= k
+        plt.grid()
+        plt.plot(np.log10(lamb), mse_test[i])
+        plt.xlabel("Ridge Penalty ($\\lambda$)")
+        plt.ylabel("Training MSE")
+        plt.show()
 
 
 def lasso_shrinkage():
@@ -332,6 +377,7 @@ if __name__ == "__main__":
     # OLS_stat()
     # OLS_split()
     # OLS_CV()
-    Ridge_model()
+    # ridge_shrinkage()
+    ridge_model_selection()
     # lasso_shrinkage()
     # lasso_mse()
