@@ -97,7 +97,7 @@ class OLS(LinearModel):
         self.inv_cov_matrix = np.linalg.pinv(X.T @ X)
 
         self.params += 1
-        self.eff_params = np.trace(X @ self.inv_cov_matrix @ X.T) + 1
+        self.eff_params = self.params
         self.b = np.zeros(self.params)
         self.b[0] = np.mean(y)
         self.b[1:] = self.inv_cov_matrix @ X.T @ y
