@@ -17,9 +17,12 @@ from scipy import stats
 from func import *
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 
 >>>>>>> 66761c559873fcb323c28edf37faf50a8707a121
+=======
+>>>>>>> bb7cbc66d953b1b26ce8da83675525ebaff693d9
 # Set fontsizes in figures
 params = {'legend.fontsize': 'large',
           'axes.labelsize': 'large',
