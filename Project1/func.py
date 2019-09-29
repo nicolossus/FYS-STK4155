@@ -153,8 +153,8 @@ class Ridge(LinearModel):
         Predict
         """
         X, P = self.design_matrix(x, self.poly_deg, intercept=False)
-        X_norm = (X - self.X_mean[np.newaxis, :]) / self.X_std[np.newaxis, :]
-        pred = X_norm @ self.b[1:] + self.b[0]
+        X = self.normalize_design_matrix(X)
+        pred = X @ self.b[1:] + self.b[0]
         return pred
 
 
@@ -167,12 +167,22 @@ class MyLasso(LinearModel):
         """
         fit
         """
+
+        # build new model if never built before or if lamb changed
+        if not hasattr(self, "lasso"):
+            self.lasso = Lasso(
+                alpha=lamb, fit_intercept=True, max_iter=1000000, warm_start=True)
+        elif (not self.lamb == lamb) or (not self.poly_deg == poly_deg):
+            self.lasso = Lasso(
+                alpha=lamb, fit_intercept=True, max_iter=1000000, warm_start=True)
+
+        self.lamb = lamb
         self.N = x.shape[0]
         self.poly_deg = poly_deg
         X, self.params = self.design_matrix(x, poly_deg, intercept=False)
+        X = self.normalize_design_matrix(X)
 
         self.params += 1
-        self.lasso = Lasso(alpha=lamb, fit_intercept=True, max_iter=100000)
         self.lasso.fit(X, y)
         self.b = np.zeros(self.params)
         self.b[0] = self.lasso.intercept_
@@ -183,6 +193,7 @@ class MyLasso(LinearModel):
         predict
         """
         X, P = self.design_matrix(x, self.poly_deg, intercept=False)
+        X = self.normalize_design_matrix(X)
         pred = self.lasso.predict(X)
         return pred
 
@@ -251,5 +262,25 @@ def down_sample(terrain, N):
     for i in range(m_new):
         for j in range(n_new):
             slice = terrain[N * i:N * (i + 1), N * j:N * (j + 1)]
-            terrain_new[i, j] = 1 / (slice.size)**2 * np.sum(slice)
+            terrain_new[i, j] = np.mean(slice)
     return terrain_new
+
+
+def plot_Franke():
+    fig = plt.figure()
+    ax = fig.gca(projection="3d")
+    # Make data.
+    x = np.arange(0, 1, 0.05)
+    y = np.arange(0, 1, 0.05)
+    x, y = np.meshgrid(x, y)
+
+    z = frankeFunction(x, y)
+    surf = ax.plot_surface(x, y, z, cmap=cm.coolwarm,
+                           linewidth=0, antialiased=False)
+    # Customize the z axis.
+    ax.set_zlim(-0.10, 1.40)
+    ax.zaxis.set_major_locator(LinearLocator(10))
+    ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    # Add a color bar which maps values to colors.
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    fig.savefig(fig_path("franke_func.pdf"))
