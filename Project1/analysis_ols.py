@@ -16,6 +16,7 @@ from scipy import stats
 
 from func import *
 from setup import *
+
 # Set seed
 np.random.seed(42)
 rd.seed(42)
@@ -71,7 +72,8 @@ def OLS_stat():
             props = dict(boxstyle='round', facecolor='lightblue', alpha=0.5)
             plt.gca().text(0.83, 0.95, textstr, transform=plt.gca().transAxes,
                            fontsize=14,  verticalalignment='top', bbox=props)
-            fig.savefig(fig_path("conf_{}_{}.pdf".format(n, s2)))
+            text_s2 = str(s2).replace(".", "_")
+            fig.savefig(fig_path("conf_{}_{}.pdf".format(n, text_s2)))
 
     # Render dataframe to a LaTeX tabular environment table and write to file
     pd.options.display.float_format = '{:,.3f}'.format
@@ -197,6 +199,6 @@ def ols_bias_variance():
 
 if __name__ == "__main__":
     OLS_stat()
-    OLS_split()
-    OLS_CV()
-    ols_bias_variance()
+    # OLS_split()
+    # OLS_CV()
+    # ols_bias_variance()
