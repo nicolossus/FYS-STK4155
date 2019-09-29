@@ -69,6 +69,9 @@ def tab_path(tab_id):
 
 
 def plot_Franke():
+    """
+    Plot Franke's function
+    """
     fig = plt.figure()
     ax = fig.gca(projection="3d")
     # Make data.
@@ -81,8 +84,10 @@ def plot_Franke():
                            linewidth=0, antialiased=False)
     # Customize the z axis.
     ax.set_zlim(-0.10, 1.40)
+    ax.view_init(elev=15, azim=60)
     ax.zaxis.set_major_locator(LinearLocator(10))
     ax.zaxis.set_major_formatter(FormatStrFormatter("%.02f"))
+    plt.tight_layout(True)
     # Add a color bar which maps values to colors.
     fig.colorbar(surf, shrink=0.5, aspect=5)
     fig.savefig(fig_path("franke_func.pdf"))
@@ -328,10 +333,10 @@ def lasso_mse():
 
 
 if __name__ == "__main__":
-    # plot_Franke()
+    plot_Franke()
     # OLS_stat()
     # OLS_split()
     # OLS_CV()
-    Ridge_model()
+    # Ridge_model()
     # lasso_shrinkage()
     # lasso_mse()
