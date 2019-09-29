@@ -1,11 +1,12 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from imageio import imread
 from matplotlib import cm
 from matplotlib.ticker import FormatStrFormatter, LinearLocator
 from mpl_toolkits.mplot3d import Axes3D
 from scipy import stats
+
 from func import *
-from imageio import imread
 
 # Load the terrain
 terrain1 = imread("SRTM_data_Norway_1.tif")

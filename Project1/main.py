@@ -16,12 +16,6 @@ from scipy import stats
 
 from func import *
 
-"""
-DEBUGGER
-remove when done
-"""
-# sys.exit(0)
-
 # Set fontsizes in figures
 params = {'legend.fontsize': 'large',
           'axes.labelsize': 'large',
@@ -186,7 +180,7 @@ def OLS_CV():
     Calculate train/test MSE for varying complexity using CV on OLS
     """
     N = [500, 5000]
-    y_lim = [[0.2, 0.8], [0.26, 0.45]]
+    y_lim = [[0.15, 0.6], [0.26, 0.45]]
     repeat = 25
     sigma2 = 0.5
     model_ols = OLS()
@@ -196,14 +190,14 @@ def OLS_CV():
     mse_train = np.zeros((repeat, poly_deg_max))
     mse_test = np.zeros((repeat, poly_deg_max))
 
-    for n in range(len(N)):  # calculate for small and large dataset
+    for n, limit in zip(N, y_lim):  # calculate for small and large dataset
         for r in range(repeat):  # resample to make many models
-            x = np.random.uniform(0, 1, (N[n], 2))
-            z = frankeFunction(x[:, 0], x[:, 1]) + \
-                np.random.normal(0, sigma2, N[n])
+            x = np.random.uniform(0, 1, (n, 2))
+            noise = np.random.normal(0, sigma2, n)
+            z = frankeFunction(x[:, 0], x[:, 1]) + noise
 
             for i in range(poly_deg_max):
-                folds = kfold(list(range(N[n])), k=5)
+                folds = kfold(list(range(n)), k=5)
 
                 for j in range(k):
                     train_idx, test_idx = folds(j)
@@ -216,9 +210,8 @@ def OLS_CV():
                 mse_test[r, i] /= k
 
         fig = plt.figure()
-        fig.suptitle(f"Train vs Test MSE, N = {N[n]}, $\\sigma^2$ = {sigma2}")
         axes = plt.gca()
-        axes.set_ylim(y_lim[n])
+        axes.set_ylim(limit)
         plt.grid()
 
         plt.plot(np.arange(poly_deg_max), np.mean(
@@ -232,8 +225,20 @@ def OLS_CV():
             plt.plot(np.arange(poly_deg_max),
                      mse_test[r], color="red", alpha=0.1)
 
-        plt.legend(["train MSE", "test MSE"])
-        fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
+        plt.gca().set_xlabel("Model Complexity")
+        plt.gca().set_ylabel("MSE")
+        plt.gca().set_title("Method: OLS w/ $k$-fold CV")
+        textstr = '\n'.join((
+            "$N = {}$".format(n),
+            "$\\sigma^2 = {}$".format(sigma2),
+            "$k = {}$".format(k)))
+        props = dict(boxstyle='round', facecolor='lightblue', alpha=0.5)
+        plt.gca().text(0.75, 0.95, textstr, transform=plt.gca().transAxes,
+                       fontsize=14,  verticalalignment='top', bbox=props)
+
+        plt.legend(["Training $\\overline{\\mathrm{MSE}}}$",
+                    "Test $\\overline{\\mathrm{MSE}}}$"])
+        fig.savefig(fig_path(f"train_test_mse_n_{n}.pdf"))
 
 
 def ols_bias_variance():
@@ -249,8 +254,8 @@ def ols_bias_variance():
 
     for i in range(resamples):
         x_resample = np.random.uniform(0, 1, (N, 2))
-        z_resample = frankeFunction(x[:, 0], x[:, 1]) + \
-            np.random.normal(0, sigma2, N)
+        z_resample = frankeFunction(
+            x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
 
 def ridge_shrinkage():
@@ -272,20 +277,26 @@ def ridge_shrinkage():
         parameters.append(model_ridge.b[1:])
     parameters = np.array(parameters)
 
-    cmap = plt.get_cmap("Greens")
-    norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_ridge.params - 1)
+    cmap = plt.get_cmap("nipy_spectral_r")
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=model_ridge.params - 1)
 
     fig = plt.figure(figsize=(8, 6))
     plt.grid()
     for i in range(model_ridge.params - 1):
-        plt.plot(np.log(lamb), parameters[:, i], color=cmap(norm(i)))
+        plt.plot(np.log10(lamb), parameters[:, i], color=cmap(norm(i)))
 
-    plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
-             (0, 0), color="black", linewidth=2)
+    plt.plot((np.log10(lamb[0]), np.log10(lamb[-1])),
+             (0, 0), color="black", ls='--', lw=2)
+    plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
+    plt.gca().set_ylabel("Coefficients $\\beta_j$ ")
+    plt.gca().set_title("Method: Ridge w/o Resampling")
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(
+        vmin=0, vmax=model_ridge.params - 1))
+    plt.colorbar(sm)
     fig.savefig(fig_path("ridge_shrinkage.pdf"))
 
 
-def ridge_model_selection():
+def ridge_mse():
     N = 200
     sigma2 = 0.5
     x = np.random.uniform(0, 1, (N, 2))
@@ -335,8 +346,8 @@ def lasso_shrinkage():
         parameters.append(model_lasso.b)
     parameters = np.array(parameters)
 
-    cmap = plt.get_cmap("Greens")
-    norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_lasso.params - 1)
+    cmap = plt.get_cmap("nipy_spectral_r")
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=model_lasso.params - 1)
 
     fig = plt.figure(figsize=(8, 6))
     plt.grid()
@@ -344,7 +355,14 @@ def lasso_shrinkage():
         plt.plot(np.log10(lamb), parameters[:, i], color=cmap(norm(i)))
 
     plt.plot((np.log10(lamb[0]), np.log10(lamb[-1])),
-             (0, 0), color="black", linewidth=2)
+             (0, 0), color="black", ls='--', lw=2)
+
+    plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
+    plt.gca().set_ylabel("Coefficients $\\beta_j$ ")
+    plt.gca().set_title("Method: Lasso w/o Resampling")
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(
+        vmin=0, vmax=model_lasso.params - 1))
+    plt.colorbar(sm)
     fig.savefig(fig_path("lasso_shrinkage.pdf"))
 
 
@@ -378,15 +396,12 @@ def lasso_mse():
 
 
 if __name__ == "__main__":
-    plot_Franke()
+    # plot_Franke()
     # OLS_stat()
     # OLS_split()
     # OLS_CV()
-<<<<<<< HEAD
-    # ridge_shrinkage()
-    ridge_model_selection()
-=======
+    ridge_shrinkage()
+    # ridge_mse()
     # Ridge_model()
->>>>>>> 33f79f99a5bfbceab93e26eea61d8549203cac5d
-    # lasso_shrinkage()
+    lasso_shrinkage()
     # lasso_mse()
