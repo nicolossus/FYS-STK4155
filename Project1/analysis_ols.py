@@ -197,14 +197,18 @@ def ols_bias_variance():
 
         variance[i] = np.mean(np.var(predicted, axis=0))
         bias2[i] = np.mean(np.mean((predicted - z_noiseless), axis=0)**2)
-
-    plt.plot(poly_deg, variance)
-    plt.plot(poly_deg, bias2)
+    fig = plt.figure()
+    plt.plot(poly_deg, variance, label="Model Variance")
+    plt.plot(poly_deg, bias2, label="Model Bias")
+    plt.grid()
+    plt.xlabel("Model Complexity")
+    plt.legend(loc="best")
+    fig.savefig(fig_path("ols_bias_variance.pdf"))
     plt.show()
 
 
 if __name__ == "__main__":
-    # OLS_stat()
+    OLS_stat()
     OLS_split()
-    # OLS_CV()
-    # ols_bias_variance()
+    OLS_CV()
+    ols_bias_variance()
