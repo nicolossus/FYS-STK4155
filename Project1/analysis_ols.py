@@ -120,7 +120,7 @@ def OLS_CV():
     Calculate train/test MSE for varying complexity using CV on OLS
     """
     N = [500, 5000]
-    y_lim = [[0.2, 0.8], [0.26, 0.45]]
+    y_lim = [[0.15, 0.6], [0.26, 0.45]]
     repeat = 25
     sigma2 = 0.5
     model_ols = OLS()
@@ -130,14 +130,14 @@ def OLS_CV():
     mse_train = np.zeros((repeat, poly_deg_max))
     mse_test = np.zeros((repeat, poly_deg_max))
 
-    for n in range(len(N)):  # calculate for small and large dataset
+    for n, limit in zip(N, y_lim):  # calculate for small and large dataset
         for r in range(repeat):  # resample to make many models
-            x = np.random.uniform(0, 1, (N[n], 2))
-            z = frankeFunction(x[:, 0], x[:, 1]) + \
-                np.random.normal(0, sigma2, N[n])
+            x = np.random.uniform(0, 1, (n, 2))
+            noise = np.random.normal(0, sigma2, n)
+            z = frankeFunction(x[:, 0], x[:, 1]) + noise
 
             for i in range(poly_deg_max):
-                folds = kfold(list(range(N[n])), k=5)
+                folds = kfold(list(range(n)), k=5)
 
                 for j in range(k):
                     train_idx, test_idx = folds(j)
@@ -150,10 +150,8 @@ def OLS_CV():
                 mse_test[r, i] /= k
 
         fig = plt.figure()
-        fig.suptitle(
-            "Train vs Test MSE, N = {}, $\\sigma^2$ = {}".format(N[n], sigma2))
         axes = plt.gca()
-        axes.set_ylim(y_lim[n])
+        axes.set_ylim(limit)
         plt.grid()
 
         plt.plot(np.arange(poly_deg_max), np.mean(
@@ -167,9 +165,20 @@ def OLS_CV():
             plt.plot(np.arange(poly_deg_max),
                      mse_test[r], color="red", alpha=0.1)
 
-        plt.legend(["train MSE", "test MSE"])
-        text_s2 = str(sigma2).replace(".", "_")
-        fig.savefig(fig_path("train_test_mse_{}_{}.pdf".format(n, text_s2)))
+        plt.gca().set_xlabel("Model Complexity")
+        plt.gca().set_ylabel("MSE")
+        plt.gca().set_title("Method: OLS w/ $k$-fold CV")
+        textstr = '\n'.join((
+            "$N = {}$".format(n),
+            "$\\sigma^2 = {}$".format(sigma2),
+            "$k = {}$".format(k)))
+        props = dict(boxstyle='round', facecolor='lightblue', alpha=0.5)
+        plt.gca().text(0.75, 0.95, textstr, transform=plt.gca().transAxes,
+                       fontsize=14,  verticalalignment='top', bbox=props)
+
+        plt.legend(["Training $\\overline{\\mathrm{MSE}}}$",
+                    "Test $\\overline{\\mathrm{MSE}}}$"])
+        fig.savefig(fig_path(f"train_test_mse_n_{n}.pdf"))
 
 
 def ols_bias_variance():
@@ -202,20 +211,13 @@ def ols_bias_variance():
     plt.plot(poly_deg, bias2, label="Model Bias")
     plt.grid()
     plt.xlabel("Model Complexity")
+    plt.gca().set_title("Method: OLS w/ Pseudo-Bootstrap")
     plt.legend(loc="best")
     fig.savefig(fig_path("ols_bias_variance.pdf"))
-    plt.show()
 
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    # OLS_stat()
-    # OLS_split()
-    # OLS_CV()
-    # ols_bias_variance()
-=======
     OLS_stat()
     OLS_split()
     OLS_CV()
     ols_bias_variance()
->>>>>>> 0d40e25254c0e93c3d4bfcd5fc038e1b44820cfe

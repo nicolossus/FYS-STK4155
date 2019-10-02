@@ -41,17 +41,22 @@ def ridge_shrinkage():
         parameters.append(model_ridge.b[1:])
     parameters = np.array(parameters)
 
-    cmap = plt.get_cmap("Greens")
-    norm = matplotlib.colors.Normalize(vmin=-10, vmax=model_ridge.params - 1)
+    cmap = plt.get_cmap("nipy_spectral_r")
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=model_ridge.params - 1)
 
     fig = plt.figure(figsize=(8, 6))
     plt.grid()
     for i in range(model_ridge.params - 1):
-        plt.plot(np.log(lamb), parameters[:, i], color=cmap(norm(i)))
+        plt.plot(np.log10(lamb), parameters[:, i], color=cmap(norm(i)))
 
-    plt.plot((np.log(lamb[0]), np.log(lamb[-1])),
-             (0, 0), color="black", linewidth=2)
-    plt.show()
+    plt.plot((np.log10(lamb[0]), np.log10(lamb[-1])),
+             (0, 0), color="black", ls='--', lw=2)
+    plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
+    plt.gca().set_ylabel("Coefficients $\\beta_j$ ")
+    plt.gca().set_title("Method: Ridge w/o Resampling")
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(
+        vmin=0, vmax=model_ridge.params - 1))
+    plt.colorbar(sm)
     fig.savefig(fig_path("ridge_shrinkage.pdf"))
 
 
@@ -70,7 +75,7 @@ def ridge_model_selection():
 
     folds = kfold(list(range(N)), k)
 
-    fig = plt.figure()
+    fig = plt.figure(figsize=(8, 6))
 
     for i in range(len(poly_deg)):
         for j in range(len(lamb)):
@@ -85,10 +90,10 @@ def ridge_model_selection():
         plt.plot(np.log10(lamb), mse_test[i])
 
     plt.grid()
-    plt.xlabel("Ridge Penalty ($\\lambda$)")
+    plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
     plt.ylabel("Test MSE")
-    plt.legend([f"p = {poly_deg[i]}" for i in range(len(poly_deg))])
-    plt.show()
+    plt.tight_layout(True)
+    plt.legend([f"Model Complexity: {poly_deg[i]}" for i in range(len(poly_deg))])
     fig.savefig(fig_path("ridge_best_model.pdf"))
 
 
@@ -118,13 +123,13 @@ def ridge_bias_variance():
 
         variance[i] = np.mean(np.var(predicted, axis=0))
         bias2[i] = np.mean(np.mean((predicted - z_noiseless), axis=0)**2)
-    fig = plt.figure()
+    fig = plt.figure(figsize=(8, 6))
     plt.grid()
     plt.plot(np.log10(lamb), variance)
     plt.plot(np.log10(lamb), bias2)
     plt.plot(np.log10(lamb), variance + bias2)
-    plt.legend(["Variance", "Bias^2", "Variance + Bias^2"])
-    plt.show()
+    plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
+    plt.legend(["Variance", "Bias$^2$", "Variance + Bias$^2$"])
     fig.savefig(fig_path("ridge_bias_variance.pdf"))
 
 
