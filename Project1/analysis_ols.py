@@ -98,6 +98,8 @@ def OLS_split():
     ratio = 0.25           # Train/test ratio
     model_ols = OLS()      # Initialize model
     poly_deg = 7           # Polynomial degree (complexity)
+    df = pd.DataFrame(columns=['N', 'sigma2',
+                               'PolyDeg', 'TrainMSE', 'TestMSE'])
 
     x = np.random.uniform(0, 1, (N, 2))
     z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
@@ -106,9 +108,11 @@ def OLS_split():
     model_ols.fit(x[train_idx], z[train_idx], poly_deg)
     mse_train = model_ols.mse(x[train_idx], z[train_idx])
     mse_test = model_ols.mse(x[test_idx], z[test_idx])
-    print(
-        f"mse_train = {mse_train:.3f} , mse_test = {mse_test:.3f}, for N = {N}"
-        + f", sigma2 = {sigma2}, poly_deg = {poly_deg}")
+
+    df = df.append({'N': N, 'sigma2': sigma2, 'PolyDeg': poly_deg,
+                    'TrainMSE': mse_train, 'TestMSE': mse_test},
+                   ignore_index=True)
+    print(df)
 
 
 def OLS_CV():
@@ -146,7 +150,8 @@ def OLS_CV():
                 mse_test[r, i] /= k
 
         fig = plt.figure()
-        fig.suptitle(f"Train vs Test MSE, N = {N[n]}, $\\sigma^2$ = {sigma2}")
+        fig.suptitle(
+            "Train vs Test MSE, N = {}, $\\sigma^2$ = {}".format(N[n], sigma2))
         axes = plt.gca()
         axes.set_ylim(y_lim[n])
         plt.grid()
@@ -163,7 +168,8 @@ def OLS_CV():
                      mse_test[r], color="red", alpha=0.1)
 
         plt.legend(["train MSE", "test MSE"])
-        fig.savefig(fig_path(f"train_test_mse_{n}_{sigma2}.pdf"))
+        text_s2 = str(sigma2).replace(".", "_")
+        fig.savefig(fig_path("train_test_mse_{}_{}.pdf".format(n, text_s2)))
 
 
 def ols_bias_variance():
@@ -171,7 +177,6 @@ def ols_bias_variance():
     sigma2 = 0.5
     x = np.random.uniform(0, 1, (N, 2))
     z_noiseless = frankeFunction(x[:, 0], x[:, 1])
-    z = z_noiseless + np.random.normal(0, sigma2, N)
     poly_deg = np.arange(1, 9)
 
     model_ols = OLS()
@@ -183,8 +188,9 @@ def ols_bias_variance():
         predicted = np.zeros((resamples, N))
         for j in range(resamples):
             x_resample = np.random.uniform(0, 1, (N, 2))
+            noise = np.random.normal(0, sigma2, N)
             z_resample = frankeFunction(
-                x_resample[:, 0], x_resample[:, 1]) + np.random.normal(0, sigma2, N)
+                x_resample[:, 0], x_resample[:, 1]) + noise
 
             model_ols.fit(x_resample, z_resample, poly_deg[i])
             predicted[j] = model_ols.predict(x)
@@ -198,7 +204,7 @@ def ols_bias_variance():
 
 
 if __name__ == "__main__":
-    OLS_stat()
-    # OLS_split()
+    # OLS_stat()
+    OLS_split()
     # OLS_CV()
     # ols_bias_variance()
