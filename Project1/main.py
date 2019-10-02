@@ -16,13 +16,6 @@ from scipy import stats
 
 from func import *
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> 66761c559873fcb323c28edf37faf50a8707a121
-=======
->>>>>>> bb7cbc66d953b1b26ce8da83675525ebaff693d9
 # Set fontsizes in figures
 params = {'legend.fontsize': 'large',
           'axes.labelsize': 'large',
@@ -266,19 +259,16 @@ def ols_bias_variance():
             model_ols.fit(x_resample, z_resample, poly_deg[i])
             predicted[j] = model_ols.predict(x)
 
-<<<<<<< HEAD
     for i in range(resamples):
         x_resample = np.random.uniform(0, 1, (N, 2))
         z_resample = frankeFunction(
             x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
-=======
         variance[i] = np.mean(np.var(predicted, axis=0))
         bias2[i] = np.mean(np.mean((predicted - z_noiseless), axis=0)**2)
 
     plt.plot(poly_deg, variance)
     plt.plot(poly_deg, bias2)
     plt.show()
->>>>>>> 66761c559873fcb323c28edf37faf50a8707a121
 
 
 def ridge_shrinkage():
@@ -455,15 +445,12 @@ if __name__ == "__main__":
     # OLS_stat()
     # OLS_split()
     # OLS_CV()
-<<<<<<< HEAD
     ridge_shrinkage()
     # ridge_mse()
     # Ridge_model()
     lasso_shrinkage()
-=======
     ols_bias_variance()
     # ridge_shrinkage()
     # ridge_model_selection()
     # lasso_shrinkage()
->>>>>>> 66761c559873fcb323c28edf37faf50a8707a121
     # lasso_mse()

@@ -205,6 +205,6 @@ def ols_bias_variance():
 
 if __name__ == "__main__":
     # OLS_stat()
-    OLS_split()
+    # OLS_split()
     # OLS_CV()
     # ols_bias_variance()
