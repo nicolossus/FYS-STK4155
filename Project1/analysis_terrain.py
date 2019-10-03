@@ -126,7 +126,7 @@ for i in range(len(poly_deg)):
             mse_lasso[l, i] /= k
 fig = plt.figure()
 plt.plot(poly_deg, mse_lasso)
-fig.savefig(fig_path("terrain_ols_best_model.pdf"))
+fig.savefig(fig_path("terrain_lasso_best_model.pdf"))
 plt.show()
 
 plt.plot(np.log10(lamb), mse_lasso)
