@@ -68,7 +68,7 @@ for i in range(len(poly_deg)):
 fig = plt.figure()
 plt.plot(poly_deg, mse_ols)
 fig.savefig(fig_path("terrain_ols_best_model.pdf"))
-plt.show()
+
 # ----------------------------------------------------------------------------
 
 
@@ -95,8 +95,7 @@ for i in range(len(poly_deg)):
 fig = plt.figure()
 plt.plot(poly_deg, mse_ridge)
 fig.savefig(fig_path("terrain_ridge_best_model.pdf"))
-plt.show()
-plt.show()
+
 # ----------------------------------------------------------------------------
 
 
@@ -127,5 +126,5 @@ for i in range(len(poly_deg)):
 fig = plt.figure()
 plt.plot(np.log10(lamb), mse_lasso)
 fig.savefig(fig_path("terrain_lasso_best_model.pdf"))
-plt.show()
+
 # ----------------------------------------------------------------------------
