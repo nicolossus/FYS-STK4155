@@ -57,7 +57,7 @@ def lasso_shrinkage():
     plt.gca().set_title("Method: Lasso w/o Resampling")
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(
         vmin=0, vmax=model_lasso.params - 1))
-    plt.colorbar(sm)
+    # plt.colorbar(sm)
     fig.savefig(fig_path("lasso_shrinkage.pdf"))
 
 
@@ -71,6 +71,7 @@ def lasso_model_selection():
     poly_deg = [3, 5, 7, 9]
     k = 5
     lamb = np.logspace(-3.5, -2, 20)
+    repeat = 30
 
     mse_test = np.zeros((len(poly_deg), len(lamb)))
 
@@ -78,13 +79,17 @@ def lasso_model_selection():
     fig = plt.figure(figsize=(8, 6))
     for i in range(len(poly_deg)):
         for j in range(len(lamb)):
-            for l in range(k):
-                train_idx, test_idx = folds(l)
-                model_lasso.fit(x[train_idx], z[train_idx],
-                                poly_deg[i], lamb[j])
-                mse_test[i, j] += model_lasso.mse(x[test_idx], z[test_idx])
+            for r in range(repeat):
+                x = np.random.uniform(0, 1, (N, 2))
+                z = frankeFunction(x[:, 0], x[:, 1]) + \
+                    np.random.normal(0, sigma2, N)
+                for l in range(k):
+                    train_idx, test_idx = folds(l)
+                    model_lasso.fit(x[train_idx], z[train_idx],
+                                    poly_deg[i], lamb[j])
+                    mse_test[i, j] += model_lasso.mse(x[test_idx], z[test_idx])
 
-            mse_test[i, j] /= k
+            mse_test[i, j] /= k * repeat
 
         plt.plot(np.log10(lamb), mse_test[i])
 
@@ -133,6 +138,6 @@ def lasso_bias_variance():
 
 
 if __name__ == "__main__":
-    lasso_shrinkage()
+    # lasso_shrinkage()
     lasso_model_selection()
-    lasso_bias_variance()
+    # lasso_bias_variance()

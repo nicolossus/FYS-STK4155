@@ -209,6 +209,7 @@ def ols_bias_variance():
     fig = plt.figure()
     plt.plot(poly_deg, variance, label="Model Variance")
     plt.plot(poly_deg, bias2, label="Model Bias")
+    plt.plot(poly_deg, variance + bias2, label="Bias + Variance")
     plt.grid()
     plt.xlabel("Model Complexity")
     plt.gca().set_title("Method: OLS w/ Pseudo-Bootstrap")

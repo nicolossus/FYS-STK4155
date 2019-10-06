@@ -168,7 +168,7 @@ class MyLasso(LinearModel):
         fit
         """
 
-        # build new model if never built before or if lamb changed
+        # build new model if never built before or if lamb/poly_deg changed
         if not hasattr(self, "lasso"):
             self.lasso = Lasso(
                 alpha=lamb, fit_intercept=True, max_iter=1000000, warm_start=True)

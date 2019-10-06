@@ -23,21 +23,20 @@ rd.seed(42)
 terrain1 = imread("SRTM_data_Norway_1.tif")
 
 
-plt.figure()
+fig = plt.figure()
 plt.title("Terrain over Norway 1")
 plt.imshow(terrain1, cmap="gray")
 plt.xlabel("X")
 plt.ylabel("Y")
-plt.show()
-
+fig.savefig(fig_path("original_terrain.pdf"))
 terrain_downsample = down_sample(terrain1, 80)
 
-plt.figure()
+fig = plt.figure()
 plt.title("Terrain over Norway 1")
 plt.imshow(terrain_downsample, cmap="gray")
 plt.xlabel("X")
 plt.ylabel("Y")
-plt.show()
+fig.savefig(fig_path("downsample_terrain.pdf"))
 
 m, n = terrain_downsample.shape
 z = np.ravel(terrain_downsample)
@@ -45,6 +44,7 @@ x = np.array([j for i in range(m) for j in n * [i]]) / m
 y = np.array(m * list(range(n))) / n
 
 x = np.array([[i, j] for i, j in zip(x, y)])
+
 
 # OLS
 # ----------------------------------------------------------------------------
@@ -78,10 +78,10 @@ k = 5
 N = len(y)
 folds = kfold(list(range(N)), k)
 
-lamb = np.logspace(-15, 0, 10)
+lamb = np.logspace(-15, 0, 15)
 poly_deg = [3, 5, 7, 10, 15, 20, 30]
 
-mse_ridge = np.zeros((len(lamb), len(poly_deg)))
+mse_ridge = np.zeros((len(poly_deg), len(lamb)))
 
 for i in range(len(poly_deg)):
     for l in range(len(lamb)):
@@ -89,9 +89,9 @@ for i in range(len(poly_deg)):
             train_idx, test_idx = folds(j)
             model_ridge = Ridge()
             model_ridge.fit(x[train_idx], z[train_idx], poly_deg[i], lamb[l])
-            mse_ridge[l, i] += model_ridge.mse(x[test_idx], z[test_idx])
+            mse_ridge[i, l] += model_ridge.mse(x[test_idx], z[test_idx])
 
-            mse_ridge[l, i] /= k
+            mse_ridge[i, l] /= k
 fig = plt.figure()
 plt.plot(poly_deg, mse_ridge)
 fig.savefig(fig_path("terrain_ridge_best_model.pdf"))
@@ -109,8 +109,8 @@ folds = kfold(list(range(N)), k)
 #lamb = np.logspace(-15, 0, 10)
 #poly_deg = [3, 5, 7, 10, 15, 20, 30, 40]
 
-lamb = np.logspace(-2.5, 0, 6)
-poly_deg = [3, 5, 7, 10, 15, 20, 30]
+lamb = np.logspace(-1.5, 0, 10)
+poly_deg = [3, 5, 10, 20]
 
 
 mse_lasso = np.zeros((len(lamb), len(poly_deg)))
@@ -125,10 +125,7 @@ for i in range(len(poly_deg)):
 
             mse_lasso[l, i] /= k
 fig = plt.figure()
-plt.plot(poly_deg, mse_lasso)
-fig.savefig(fig_path("terrain_lasso_best_model.pdf"))
-plt.show()
-
 plt.plot(np.log10(lamb), mse_lasso)
+fig.savefig(fig_path("terrain_lasso_best_model.pdf"))
 plt.show()
 # ----------------------------------------------------------------------------
