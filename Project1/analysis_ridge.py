@@ -137,13 +137,10 @@ def ridge_model_selection():
     poly_deg = [3, 5, 7, 9]
     k = 5
     lamb = np.logspace(-3, 1, 20)
-
     mse_test = np.zeros((len(poly_deg), len(lamb)))
-
     folds = kfold(list(range(N)), k)
 
     fig = plt.figure(figsize=(8, 6))
-
     for i in range(len(poly_deg)):
         for j in range(len(lamb)):
             for l in range(k):
@@ -154,13 +151,14 @@ def ridge_model_selection():
 
             mse_test[i, j] /= k
 
-        plt.plot(np.log10(lamb), mse_test[i])
+        label_str = "Model Complexity: {}".format(i)
+        plt.plot(np.log10(lamb), mse_test[i], label=label_str)
 
     plt.grid()
     plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
     plt.ylabel("Test MSE")
     plt.tight_layout(True)
-    plt.legend([f"Model Complexity: {poly_deg[i]}" for i in range(len(poly_deg))])
+    plt.legend(loc='best')
     fig.savefig(fig_path("ridge_best_model.pdf"))
 
 
@@ -201,7 +199,7 @@ def ridge_bias_variance():
 
 
 if __name__ == "__main__":
-    # ridge_shrinkage()
+    ridge_shrinkage()
     # ridge_model_selection()
     # ridge_bias_variance()
-    ridge_CI()
+    # ridge_CI()

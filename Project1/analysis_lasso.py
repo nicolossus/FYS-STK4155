@@ -57,7 +57,7 @@ def lasso_shrinkage():
     plt.gca().set_title("Method: Lasso w/o Resampling")
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(
         vmin=0, vmax=model_lasso.params - 1))
-    # plt.colorbar(sm)
+    plt.colorbar(sm)
     fig.savefig(fig_path("lasso_shrinkage.pdf"))
 
 
@@ -91,13 +91,14 @@ def lasso_model_selection():
 
             mse_test[i, j] /= k * repeat
 
-        plt.plot(np.log10(lamb), mse_test[i])
+        label_str = "Model Complexity: {}".format(i)
+        plt.plot(np.log10(lamb), mse_test[i], label=label_str)
 
     plt.grid()
     plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
     plt.ylabel("Test MSE")
     plt.tight_layout(True)
-    plt.legend([f"Model Complexity: {poly_deg[i]}" for i in range(len(poly_deg))])
+    plt.legend(loc='best')
     fig.savefig(fig_path("lasso_best_model.pdf"))
 
 
