@@ -46,7 +46,7 @@ def OLS_stat():
         for s2 in sigma2:
             x = np.random.uniform(0, 1, (n, 2))
             noise = np.random.normal(0, s2, n)
-            z = frankeFunction(x[:, 0], x[:, 1] + noise)
+            z = frankeFunction(x[:, 0], x[:, 1]) + noise
             model_ols.fit(x, z, poly_deg)
 
             mse = model_ols.mse(x, z)

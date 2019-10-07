@@ -51,7 +51,7 @@ x = np.array([[i, j] for i, j in zip(x, y)])
 k = 5
 N = len(y)
 folds = kfold(list(range(N)), k)
-poly_deg_max = 15
+poly_deg_max = 10
 
 poly_deg = np.arange(1, poly_deg_max)
 
@@ -67,6 +67,8 @@ for i in range(len(poly_deg)):
     mse_ols[i] /= k
 fig = plt.figure()
 plt.plot(poly_deg, mse_ols)
+plt.xlabel("Model Complexity")
+plt.ylabel("MSE")
 fig.savefig(fig_path("terrain_ols_best_model.pdf"))
 
 # ----------------------------------------------------------------------------
@@ -78,22 +80,27 @@ k = 5
 N = len(y)
 folds = kfold(list(range(N)), k)
 
-lamb = np.logspace(-15, 0, 15)
-poly_deg = [3, 5, 7, 10, 15, 20, 30]
+lamb = np.logspace(-6.5, 2, 15)
+poly_deg = [4, 5, 6, 7, 9, 11]
 
-mse_ridge = np.zeros((len(poly_deg), len(lamb)))
+mse_ridge = np.zeros((len(lamb), len(poly_deg)))
 
 for i in range(len(poly_deg)):
     for l in range(len(lamb)):
+        model_ridge = Ridge()
         for j in range(k):
             train_idx, test_idx = folds(j)
-            model_ridge = Ridge()
-            model_ridge.fit(x[train_idx], z[train_idx], poly_deg[i], lamb[l])
-            mse_ridge[i, l] += model_ridge.mse(x[test_idx], z[test_idx])
 
-            mse_ridge[i, l] /= k
+            model_ridge.fit(x[train_idx], z[train_idx], poly_deg[i], lamb[l])
+            mse_ridge[l, i] += model_ridge.mse(x[test_idx], z[test_idx])
+
+        mse_ridge[l, i] /= k
 fig = plt.figure()
-plt.plot(poly_deg, mse_ridge)
+plt.grid()
+plt.plot(np.log10(lamb), mse_ridge)
+plt.xlabel("$\\log10(\\lambda)$")
+plt.ylabel("MSE")
+plt.legend(poly_deg)
 fig.savefig(fig_path("terrain_ridge_best_model.pdf"))
 
 # ----------------------------------------------------------------------------
@@ -105,11 +112,11 @@ k = 5
 N = len(y)
 folds = kfold(list(range(N)), k)
 
-#lamb = np.logspace(-15, 0, 10)
-#poly_deg = [3, 5, 7, 10, 15, 20, 30, 40]
+# lamb = np.logspace(-15, 0, 10)
+# poly_deg = [3, 5, 7, 10, 15, 20, 30, 40]
 
-lamb = np.logspace(-1.5, 0, 10)
-poly_deg = [3, 5, 10, 20]
+lamb = np.logspace(-1.5, 0.5, 10)
+poly_deg = [4, 5, 6, 7, 9, 11]
 
 
 mse_lasso = np.zeros((len(lamb), len(poly_deg)))
@@ -122,9 +129,13 @@ for i in range(len(poly_deg)):
             model_lasso.fit(x[train_idx], z[train_idx], poly_deg[i], lamb[l])
             mse_lasso[l, i] += model_lasso.mse(x[test_idx], z[test_idx])
 
-            mse_lasso[l, i] /= k
+        mse_lasso[l, i] /= k
 fig = plt.figure()
 plt.plot(np.log10(lamb), mse_lasso)
+plt.grid()
+plt.xlabel("$\\log10(\\lambda)$")
+plt.ylabel("MSE")
+plt.legend(poly_deg)
 fig.savefig(fig_path("terrain_lasso_best_model.pdf"))
 
 # ----------------------------------------------------------------------------

@@ -60,6 +60,73 @@ def ridge_shrinkage():
     fig.savefig(fig_path("ridge_shrinkage.pdf"))
 
 
+def ridge_CI():
+    """
+    Statistical summary with OLS on data of different size and varying noise.
+    Summary includes training MSE, R2 and CI
+    """
+    N = 100              # Number of data points
+    sigma2 = 0.01        # Irreducable error
+    lamb1 = 0  # Penalty
+    lamb2 = 0.01
+
+    # Initialize model
+    model_ridge = Ridge()
+    poly_deg = 5                   # complexity
+    p = 0.9                        # 90% confidence interval
+
+    x = np.random.uniform(0, 1, (N, 2))
+    z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
+
+    model_ridge.fit(x, z, poly_deg, lamb1)
+    CI_no_penalty = model_ridge.confidence_interval(p)
+
+    model_ridge.fit(x, z, poly_deg, lamb2)
+    CI_penalty = model_ridge.confidence_interval(p)
+
+    # Setup for plotting
+    labels = generate_labels(poly_deg)
+    cmap = plt.get_cmap("Greens")
+    norm = matplotlib.colors.Normalize(vmin=-10, vmax=len(CI_no_penalty))
+
+    fig = plt.figure(figsize=(8, 6))
+    plt.yticks(np.arange(model_ridge.params), labels)
+    plt.grid()
+
+    for i in range(len(CI_no_penalty)):
+        plt.plot(CI_no_penalty[i], (i, i), color=cmap(norm(i)))
+        plt.plot(CI_no_penalty[i], (i, i), "o", color=cmap(norm(i)))
+
+    plt.gca().set_title("90% Confidence Interval")
+    textstr = '\n'.join((
+        "$N = {}$".format(N),
+        "$\\sigma^2 = {}$".format(sigma2), "$\\lambda = {}$".format(lamb1)))
+    props = dict(boxstyle='round', facecolor='lightblue', alpha=0.5)
+    plt.gca().text(0.83, 0.95, textstr, transform=plt.gca().transAxes,
+                   fontsize=14,  verticalalignment='top', bbox=props)
+    fig.savefig(fig_path("ridge_CI_no_penalty.pdf"))
+
+
+# ----------------------------------------------------------------------------
+    fig = plt.figure(figsize=(8, 6))
+    plt.yticks(np.arange(model_ridge.params), labels)
+    plt.grid()
+
+    for i in range(len(CI_no_penalty)):
+        plt.plot(CI_penalty[i], (i, i), color=cmap(norm(i)))
+        plt.plot(CI_penalty[i], (i, i), "o", color=cmap(norm(i)))
+
+    plt.gca().set_title("90% Confidence Interval")
+    textstr = '\n'.join((
+        "$N = {}$".format(N),
+        "$\\sigma^2 = {}$".format(sigma2), "$\\lambda = {}$".format(lamb2)))
+    props = dict(boxstyle='round', facecolor='lightblue', alpha=0.5)
+    plt.gca().text(0.83, 0.95, textstr, transform=plt.gca().transAxes,
+                   fontsize=14,  verticalalignment='top', bbox=props)
+    fig.savefig(fig_path("ridge_CI_penalty.pdf"))
+# ----------------------------------------------------------------------------------
+
+
 def ridge_model_selection():
     N = 500
     sigma2 = 0.5
@@ -134,6 +201,7 @@ def ridge_bias_variance():
 
 
 if __name__ == "__main__":
-    ridge_shrinkage()
-    ridge_model_selection()
-    ridge_bias_variance()
+    # ridge_shrinkage()
+    # ridge_model_selection()
+    # ridge_bias_variance()
+    ridge_CI()
