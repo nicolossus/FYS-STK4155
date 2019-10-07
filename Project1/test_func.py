@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from func import *
+import sklearn.linear_model as sk
 
 
 def test_design_matrix():
@@ -104,6 +105,36 @@ def test_ridge_inf_penalty():
     model_ridge.fit(x, y, 2, 10000000)
 
     assert abs(model_ridge.eff_params - 1) < 1e-4
+
+
+def test_ridge_vs_sklearn():
+    """
+    Test our Ridge regression vs sklearn Ridge regression for different lambda
+    """
+    np.random.seed(1)
+    model = LinearModel()
+    model_ridge = Ridge()
+    N = 100
+    x = np.random.uniform(0, 1, (N, 2))
+
+    b = [1, 2, 3, 4, 5, 6]
+    y = b[0] + b[1] * x[:, 0] + b[2] * x[:, 0]**2 + b[3] * x[:, 1] \
+        + b[4] * x[:, 0] * x[:, 1] + b[5] * x[:, 1]**2
+
+    lamb = [0, 1, 2, 3, 4]
+    for i in range(len(lamb)):
+        # our model
+        model_ridge.fit(x, y, 2, lamb[i])
+
+        # sklearn's Ridge
+        X, P = model.design_matrix(x, 2, intercept=False)
+        clf = sk.Ridge(lamb[i], fit_intercept=False)
+        b_sk = [np.mean(y)]
+
+        clf.fit(X, y)
+        b_sk += clf.coef_
+        for b_our_ridge, b_sk_ridge in zip(model_ridge.b, b_sk):
+            assert (b_our_ridge - b_sk_ridge) < 1e-10
 
 
 def test_split_data():
