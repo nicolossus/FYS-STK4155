@@ -11,6 +11,7 @@ import sklearn.linear_model as sk
 
 
 def test_design_matrix():
+    """Check that the desing matrix produces the correct result"""
     model = LinearModel()
     x = np.array([[1, 10], [2, 20], [3, 30]])
     X_computed, P = model.design_matrix(x, 2)
@@ -33,6 +34,7 @@ def test_design_matrix():
 
 
 def test_ols():
+    """Check that ols sufficiently approximates a noiseless function"""
     np.random.seed(1)
     model = OLS()
     N = 1000
@@ -49,6 +51,7 @@ def test_ols():
 
 
 def test_ridge_vs_ols():
+    """Test that our Ridge coincides with OLS for lamda = 0"""
     np.random.seed(1)
     model_ols = OLS()
     model_ridge = Ridge()
@@ -72,6 +75,7 @@ def test_ridge_vs_ols():
 
 
 def test_lasso_vs_ols():
+    """Test that our Ridge coincides with OLS for lamda ~ 0"""
     np.random.seed(1)
     model_ols = OLS()
     model_lasso = MyLasso()
@@ -93,6 +97,10 @@ def test_lasso_vs_ols():
 
 
 def test_ridge_inf_penalty():
+    """
+    Check that the effective degrees of freedom approaches 1 for infinite
+    penalty
+    """
     np.random.seed(1)
     model_ridge = Ridge()
     N = 100
@@ -138,18 +146,21 @@ def test_ridge_vs_sklearn():
 
 
 def test_split_data():
+    """Cheack that the split function works"""
     rd.seed(1)
     N = 1000
 
     train_idx, test_idx = split_data(list(range(N)))
     assert abs(len(test_idx) / (len(train_idx) + len(test_idx)) - 0.25) < 0.01
 
+    # makes sure no elements were lost, or duplicated
     all_idx = train_idx + test_idx
     all_idx.sort()
     assert list(range(N)) == all_idx
 
 
 def test_kfold():
+    """Cheack that the kfold function works"""
     N = 1000
     k = 5
     folds = kfold(list(range(N)), k)
@@ -157,6 +168,7 @@ def test_kfold():
     all_test_idx = []
 
     for i in range(k):
+        # makes sure no elements were lost, or duplicated
         train_idx, test_idx = folds(i)
         all_test_idx += test_idx
 
