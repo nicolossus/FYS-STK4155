@@ -182,6 +182,9 @@ def OLS_CV():
 
 
 def ols_bias_variance():
+    """
+    Calculate the bias-variance tradeoff using MC
+    """
     N = 1000
     sigma2 = 0.5
     x = np.random.uniform(0, 1, (N, 2))

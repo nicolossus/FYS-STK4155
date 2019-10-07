@@ -18,8 +18,8 @@ from func import *
 from setup import *
 
 # Set seed
-np.random.seed(42)
-rd.seed(42)
+np.random.seed(41)
+rd.seed(41)
 
 
 def ridge_shrinkage():
@@ -53,7 +53,7 @@ def ridge_shrinkage():
              (0, 0), color="black", ls='--', lw=2)
     plt.gca().set_xlabel("$\\log_{10}(\\lambda)$")
     plt.gca().set_ylabel("Coefficients $\\beta_j$ ")
-    plt.gca().set_title("Method: Ridge w/o Resampling")
+    plt.gca().set_title("Method: Ridge w/o ResamplLassoing")
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(
         vmin=0, vmax=model_ridge.params - 1))
     plt.colorbar(sm)
@@ -128,8 +128,11 @@ def ridge_CI():
 
 
 def ridge_model_selection():
-    N = 500
-    sigma2 = 0.5
+    """
+    Calculate the test MSE of Ridge for various complexitis and penalties
+    """
+    N = 500  # Number of data points
+    sigma2 = 0.5  # irreducible error
     x = np.random.uniform(0, 1, (N, 2))
     z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
@@ -141,6 +144,10 @@ def ridge_model_selection():
     folds = kfold(list(range(N)), k)
 
     fig = plt.figure(figsize=(8, 6))
+<<<<<<< HEAD
+=======
+    # iterate over complexity and penalty
+>>>>>>> bc33603579d34a2ab339df38a9f7236c7a5b2190
     for i in range(len(poly_deg)):
         for j in range(len(lamb)):
             for l in range(k):
@@ -163,6 +170,9 @@ def ridge_model_selection():
 
 
 def ridge_bias_variance():
+    """
+    Calculate the bias-variance tradeoff using MC
+    """
     N = 1000
     sigma2 = 0.5
     x = np.random.uniform(0, 1, (N, 2))
@@ -178,7 +188,7 @@ def ridge_bias_variance():
 
     for i in range(len(lamb)):
         predicted = np.zeros((resamples, N))
-        for j in range(resamples):
+        for j in range(resamples):  # repetitions to average noise
             x_resample = np.random.uniform(0, 1, (N, 2))
             z_resample = frankeFunction(
                 x_resample[:, 0], x_resample[:, 1]) + np.random.normal(0, sigma2, N)
@@ -200,6 +210,12 @@ def ridge_bias_variance():
 
 if __name__ == "__main__":
     ridge_shrinkage()
+<<<<<<< HEAD
     # ridge_model_selection()
     # ridge_bias_variance()
     # ridge_CI()
+=======
+    ridge_model_selection()
+    ridge_bias_variance()
+    ridge_CI()
+>>>>>>> bc33603579d34a2ab339df38a9f7236c7a5b2190

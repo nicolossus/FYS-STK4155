@@ -24,16 +24,17 @@ rd.seed(42)
 
 def lasso_shrinkage():
     """
-    Lasso
+    Calculate and plot the parameters for Lasso for various penalties
     """
-    N = 1000
-    sigma2 = 0.01
+    N = 1000  # Number of data pints
+    sigma2 = 0.01  # Irreducable error
+    # Generating data
     x = np.random.uniform(0, 1, (N, 2))
     z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
     model_lasso = MyLasso()
     poly_deg = 5
-    lamb = np.logspace(-4, -1, 15)
+    lamb = np.logspace(-4, -1, 15)  # penalty
     parameters = []
 
     for i in range(len(lamb)):
@@ -62,8 +63,12 @@ def lasso_shrinkage():
 
 
 def lasso_model_selection():
-    N = 500
-    sigma2 = 0.5
+    """
+    Calculate the test MSE of Lasso for various complexitis and penalties
+    """
+    N = 500  # Number of data points
+    sigma2 = 0.5  # Irreducible error
+    # generating data
     x = np.random.uniform(0, 1, (N, 2))
     z = frankeFunction(x[:, 0], x[:, 1]) + np.random.normal(0, sigma2, N)
 
@@ -71,15 +76,17 @@ def lasso_model_selection():
     poly_deg = [3, 5, 7, 9]
     k = 5
     lamb = np.logspace(-3.5, -2, 20)
-    repeat = 30
+    repeat = 30  # number of repetitions to average noise
 
     mse_test = np.zeros((len(poly_deg), len(lamb)))
 
     folds = kfold(list(range(N)), k)
     fig = plt.figure(figsize=(8, 6))
+
+    # iterate over complexity and penalty
     for i in range(len(poly_deg)):
         for j in range(len(lamb)):
-            for r in range(repeat):
+            for r in range(repeat):  # repetitions to average noise
                 x = np.random.uniform(0, 1, (N, 2))
                 z = frankeFunction(x[:, 0], x[:, 1]) + \
                     np.random.normal(0, sigma2, N)
@@ -103,13 +110,17 @@ def lasso_model_selection():
 
 
 def lasso_bias_variance():
-    N = 300
-    sigma2 = 0.5
+    """
+    Calculate the bias-variance tradeoff using MC
+    """
+    N = 300  # number of data points
+    sigma2 = 0.5  # irreducible error
+    # generating reference sample
     x = np.random.uniform(0, 1, (N, 2))
     z_noiseless = frankeFunction(x[:, 0], x[:, 1])
     z = z_noiseless + np.random.normal(0, sigma2, N)
     poly_deg = 9
-    lamb = np.logspace(-3.5, -3, 15)
+    lamb = np.logspace(-3.5, -3, 15)  # penalty
 
     model_lasso = MyLasso()
     resamples = 30
@@ -119,6 +130,7 @@ def lasso_bias_variance():
     for i in range(len(lamb)):
         predicted = np.zeros((resamples, N))
         for j in range(resamples):
+            # generating new samples for Monte Carlo simulation
             x_resample = np.random.uniform(0, 1, (N, 2))
             z_resample = frankeFunction(
                 x_resample[:, 0], x_resample[:, 1]) + np.random.normal(0, sigma2, N)
@@ -128,6 +140,7 @@ def lasso_bias_variance():
 
         variance[i] = np.mean(np.var(predicted, axis=0))
         bias2[i] = np.mean(np.mean((predicted - z_noiseless), axis=0)**2)
+
     fig = plt.figure(figsize=(8, 6))
     plt.grid()
     plt.plot(np.log10(lamb), variance)
@@ -139,6 +152,6 @@ def lasso_bias_variance():
 
 
 if __name__ == "__main__":
-    # lasso_shrinkage()
+    lasso_shrinkage()
     lasso_model_selection()
-    # lasso_bias_variance()
+    lasso_bias_variance()
