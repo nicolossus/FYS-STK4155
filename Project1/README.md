@@ -35,7 +35,7 @@ This repository contains programs made for project 1 in FYS-STK4155: Applied dat
 
 - The [Figures](https://github.com/nicolossus/FYS-STK4155/tree/master/Project1/Figures) folder contains all plots produced in this project.
 
-- The [Tables](https://github.com/nicolossus/FYS-STK4155/tree/master/Project1/Figures) folder contains tables produced in raw LaTeX format.
+- The [Tables](https://github.com/nicolossus/FYS-STK4155/tree/master/Project1/Tables) folder contains tables produced in raw LaTeX format.
 
 **Usage**
 
