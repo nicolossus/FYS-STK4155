@@ -1,18 +1,11 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import random as rd
-import sys
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from matplotlib import cm
-from matplotlib.ticker import FormatStrFormatter, LinearLocator
-from mpl_toolkits.mplot3d import Axes3D
-from scipy import stats
 
 from func import *
 from setup import *
@@ -24,7 +17,7 @@ rd.seed(41)
 
 def ridge_shrinkage():
     """
-    Ridge
+    Calculate and plot the parameters for Ridge for various penalties
     """
     N = 1000
     sigma2 = 1
@@ -106,8 +99,6 @@ def ridge_CI():
                    fontsize=14,  verticalalignment='top', bbox=props)
     fig.savefig(fig_path("ridge_CI_no_penalty.pdf"))
 
-
-# ----------------------------------------------------------------------------
     fig = plt.figure(figsize=(8, 6))
     plt.yticks(np.arange(model_ridge.params), labels)
     plt.grid()
@@ -124,7 +115,6 @@ def ridge_CI():
     plt.gca().text(0.83, 0.95, textstr, transform=plt.gca().transAxes,
                    fontsize=14,  verticalalignment='top', bbox=props)
     fig.savefig(fig_path("ridge_CI_penalty.pdf"))
-# ----------------------------------------------------------------------------------
 
 
 def ridge_model_selection():
@@ -144,10 +134,7 @@ def ridge_model_selection():
     folds = kfold(list(range(N)), k)
 
     fig = plt.figure(figsize=(8, 6))
-<<<<<<< HEAD
-=======
     # iterate over complexity and penalty
->>>>>>> bc33603579d34a2ab339df38a9f7236c7a5b2190
     for i in range(len(poly_deg)):
         for j in range(len(lamb)):
             for l in range(k):
@@ -210,12 +197,6 @@ def ridge_bias_variance():
 
 if __name__ == "__main__":
     ridge_shrinkage()
-<<<<<<< HEAD
-    # ridge_model_selection()
-    # ridge_bias_variance()
-    # ridge_CI()
-=======
     ridge_model_selection()
     ridge_bias_variance()
     ridge_CI()
->>>>>>> bc33603579d34a2ab339df38a9f7236c7a5b2190

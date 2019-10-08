@@ -4,14 +4,16 @@
 import random as rd
 
 import numpy as np
-import pytest
-
-from func import *
 import sklearn.linear_model as sk
+
+import pytest
+from func import *
 
 
 def test_design_matrix():
-    """Check that the desing matrix produces the correct result"""
+    """
+    Check that the design matrix produces the correct result
+    """
     model = LinearModel()
     x = np.array([[1, 10], [2, 20], [3, 30]])
     X_computed, P = model.design_matrix(x, 2)
@@ -34,7 +36,9 @@ def test_design_matrix():
 
 
 def test_ols():
-    """Check that ols sufficiently approximates a noiseless function"""
+    """
+    Check that ols sufficiently approximates a noiseless function
+    """
     np.random.seed(1)
     model = OLS()
     N = 1000
@@ -51,7 +55,9 @@ def test_ols():
 
 
 def test_ridge_vs_ols():
-    """Test that our Ridge coincides with OLS for lamda = 0"""
+    """
+    Test that our Ridge coincides with OLS for lamda = 0
+    """
     np.random.seed(1)
     model_ols = OLS()
     model_ridge = Ridge()
@@ -75,7 +81,9 @@ def test_ridge_vs_ols():
 
 
 def test_lasso_vs_ols():
-    """Test that our Ridge coincides with OLS for lamda ~ 0"""
+    """
+    Test that our Ridge coincides with OLS for lamda ~ 0
+    """
     np.random.seed(1)
     model_ols = OLS()
     model_lasso = MyLasso()
@@ -146,7 +154,9 @@ def test_ridge_vs_sklearn():
 
 
 def test_split_data():
-    """Cheack that the split function works"""
+    """
+    Check that the split function works
+    """
     rd.seed(1)
     N = 1000
 
@@ -160,7 +170,9 @@ def test_split_data():
 
 
 def test_kfold():
-    """Cheack that the kfold function works"""
+    """
+    Check that the kfold function works
+    """
     N = 1000
     k = 5
     folds = kfold(list(range(N)), k)

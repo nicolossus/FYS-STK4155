@@ -1,18 +1,11 @@
 # !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import random as rd
-import sys
 
 import matplotlib.colors
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
-from matplotlib import cm
-from matplotlib.ticker import FormatStrFormatter, LinearLocator
-from mpl_toolkits.mplot3d import Axes3D
-from scipy import stats
 
 from func import *
 from setup import *
