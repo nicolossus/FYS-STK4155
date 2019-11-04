@@ -1,8 +1,10 @@
 import numpy as np
-import numba as nb
 from sklearn.datasets import load_digits
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.model_selection import ShuffleSplit
+
+import pickle
+import os
+os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+from urllib.request import urlopen
 
 
 class Sigmoid():
@@ -31,7 +33,7 @@ class Relu():
 
 class SoftMax():
     def __call__(self, x):
-        return np.exp(x) / np.sum(np.exp(x), axis=0)
+        return np.exp(x) / np.sum(np.exp(x), axis=1)[:, np.newaxis]
 
     def deriv(self, x):
         return self(x) * (1 - self(x))
@@ -50,8 +52,7 @@ class SquareLoss():
         return 0.5 * sum((y_pred - y)**2)
 
     def deriv(self, y_pred, y):
-        ting = np.sum(y_pred - y.T, axis=0)
-        return ting
+        return y_pred - y
 
 
 class CrossEntropy():
@@ -59,7 +60,7 @@ class CrossEntropy():
         return -sum(y * np.log(y_pred) + (1 - y) * log(1 - y_pred))
 
     def deriv(self, y_pred, y):
-        return (y_pred - y.T) / (y_pred * (1 - y_pred))
+        return (y_pred - y) / (y_pred * (1 - y_pred))
 
 
 class MlogLoss():
@@ -91,49 +92,40 @@ class NeuralNetwork():
             self.b[i] = 0.01 * np.ones(m)
 
     def forward(self, x):
-        self.z[0] = x.T
-        self.a[0] = x.T
+        self.z[0] = x
+        self.a[0] = x
         for i in range(len(self.W)):
-            self.z[i + 1] = self.W[i]@self.a[i] + self.b[i][:, np.newaxis]
+            self.z[i + 1] = self.a[i]@self.W[i].T + self.b[i][np.newaxis]
             self.a[i + 1] = self.acf[i](self.z[i + 1])
 
     def backward(self, x, y):
         self.forward(x)
-        self.grad[-1] = self.acf[-1].deriv(self.z[-1]) * \
+
+        self.delta[-1] = self.acf[-1].deriv(self.z[-1]) * \
             self.cost.deriv(self.a[-1], y)
 
         for i in range(len(self.W) - 1, 0, -1):
-            self.grad[i - 1] = self.W[i].T @ self.grad[i] * \
-                self.acf[i].deriv(self.z[i])
+            self.delta[i - 1] = self.delta[i] @ self.W[i] * \
+                self.acf[i - 1].deriv(self.z[i])
 
     def train(self, X, y, mu, batch_size):
-        self.backward(X, y)
-        for i in range(len(self.grad)):
-            self.delta[i] = self.grad[i]@self.a[i].T
+        if len(y.shape) == 1:
+            y = y[:, np.newaxis]
 
-        self.W -= mu * self.delta
-        for i in range(len(self.grad)):
-            self.b[i] -= mu * np.sum(self.grad[i], axis=1)
-
-        """
         n = len(y)
         num_iters = int(n / batch_size)
-
 
         for i in range(num_iters):
             idx_train = np.random.choice(
                 np.arange(0, n), batch_size, replace=False)
-
             self.backward(X[idx_train], y[idx_train])
+            for j in range(len(self.grad)):
+                self.grad[j] = self.delta[j].T @ self.a[j]
+
+            self.W -= mu * self.grad
 
             for j in range(len(self.grad)):
-                self.delta[i] = self.grad[i]@self.a[i].T
-
-            self.W -= mu * self.delta
-            for i in range(len(self.grad)):
-                self.b[i] -= mu * np.sum(self.grad[i], axis=1)
-
-        """
+                self.b[j] -= mu * np.sum(self.delta[j], axis=0)
 
 
 tanh = Tanh()
@@ -145,6 +137,7 @@ crossEntropy = CrossEntropy()
 squareLoss = SquareLoss()
 mlogloss = MlogLoss()
 
+"""
 data = load_digits()
 
 X = data.data
@@ -154,22 +147,36 @@ y = data.target
 np.random.seed(42)
 idx = np.where(np.logical_or(y == 0, y == 1))[0]
 np.random.shuffle(idx)
-idx_train = idx[:300]
-idx_test = idx[300:]
+idx_train = idx[:250]
+idx_test = idx[250:]
 
 X_train = X[idx_train]
 y_train = y[idx_train]
 
 X_test = X[idx_test]
 y_test = y[idx_test]
+"""
 
+url_main = "https://physics.bu.edu/~pankajm/ML-Review-Datasets/isingMC/"
+data_file_name = "Ising2DFM_reSample_L40_T=All.pkl"
+label_file_name = "Ising2DFM_reSample_L40_T=All_labels.pkl"
 
-nn = NeuralNetwork((64, 32, 1), [tanh, sig], crossEntropy)
+print("1")
+
+data = pickle.load(urlopen(url_main + data_file_name))
+print("2")
+data = np.unpackbits(data).reshape(-1, 1600)
+print("3")
+data = data.astype('int')
+
+print(data.shape)
+"""
+nn = NeuralNetwork((64, 10, 1), [tanh, sig], crossEntropy)
 
 epoch = 1000
 
 for i in range(epoch):
-    nn.train(X_train, y_train, 0.00001, 64)
+    nn.train(X_train, y_train, 0.001, 64)
     if i % (epoch / 100) == 0:
         print(i * (100 / epoch))
 
@@ -177,47 +184,12 @@ success = 0
 
 nn.forward(X_test)
 
-# print(y_test[:10])
-print((nn.a)[-1].shape)
-print(y_test.shape)
+print(y_test[:10])
+print(np.round((nn.a)[-1][:10]))
+# print(y_test.shape)
 
 for i in range(len(y_test)):
-    success += (np.round((nn.a)[-1][:, i]) == y_test[i])
+    success += (np.round((nn.a)[-1][i]) == y_test[i])
 
-print(success)
-
-"""
-
-enc = OneHotEncoder(categories='auto')
-
-N = 1500
-N_test = 100
-
-y = enc.fit_transform(np.array(data.target).reshape(-1, 1)).toarray()
-x = np.array(data.data)
-
-np.random.seed(42)
-nn = NeuralNetwork((64, 48, 10), [tanh, softMax], squareLoss)
-
-y_train = y[:1300]
-x_train = x[:1300] / np.max(x)
-
-y_test = y[1300:]
-x_test = x[1300:] / np.max(x)
-
-epoch = 1000
-
-for i in range(epoch):
-    nn.train(x_train, y_train, 0.0001, 0, 64)
-    if i % (epoch / 100) == 0:
-        print(i * (100 / epoch))
-
-success = 0
-
-nn.forward(x_train)
-
-for i in range(100):
-    success += np.array_equal(np.round((nn.a)[-1][:, i]), y_train[i])
-
-print(success)
+print(success, "/", len(y_test))
 """
